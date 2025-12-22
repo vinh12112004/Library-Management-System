@@ -5,6 +5,7 @@ using backend.Repositories;
 using backend.Services;
 using backend.Services.Author;
 using backend.Services.Book;
+using backend.Services.BookCopy;
 using backend.Services.Category;
 using backend.Services.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,10 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // 🔹 Book Module
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookService, BookService>();
+
+// 🔹 BookCopy Module
+builder.Services.AddScoped<IBookCopyRepository, BookCopyRepository>();
+builder.Services.AddScoped<IBookCopyService, BookCopyService>();
 
 // 🔹 Controllers & Swagger
 builder.Services.AddControllers();

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using backend.DTOs.Author;
 using backend.DTOs.Book;
+using backend.DTOs.BookCopy;
 using backend.DTOs.Category;
 using backend.DTOs.Publisher;
 using backend.Models;
@@ -46,6 +47,10 @@ namespace backend.Helpers
 
             CreateMap<CreateBookDto, Book>();
             CreateMap<UpdateBookDto, Book>();
+
+            CreateMap<CreateBookCopyDto, BookCopy>();
+            CreateMap<UpdateBookCopyDto, BookCopy>();
+            CreateMap<BookCopy, BookCopyDto>();
         }
     }
 }
