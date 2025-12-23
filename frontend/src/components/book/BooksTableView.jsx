@@ -40,8 +40,9 @@ export function BooksTableView({ books, onView, onEdit, onDelete }) {
                             <Badge variant="outline">{book.language}</Badge>
                         </TableCell>
                         <TableCell>{book.pages}</TableCell>
+                   
                         <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2" >
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -65,6 +66,7 @@ export function BooksTableView({ books, onView, onEdit, onDelete }) {
                                 </Button>
                             </div>
                         </TableCell>
+                       
                     </TableRow>
                 ))}
             </TableBody>

@@ -49,7 +49,7 @@ import { getCategories } from "../services/categoryService";
 import { toast } from "sonner";
 import { BooksTableView } from "./book/BooksTableView";
 import { BooksGridView } from "./book/BooksGridView";
-
+import { BookDetail } from "./BookDetail";
 export function BooksManagement({ onNavigate }) {
     // ----------------------------------------
     // STATES
@@ -63,6 +63,42 @@ export function BooksManagement({ onNavigate }) {
     const [editingBook, setEditingBook] = useState(null);
     const [coverImageFile, setCoverImageFile] = useState(null);
     const [viewMode, setViewMode] = useState("table");
+
+  // Phần test dữ liệu demo
+const BookDemoList = [
+  {
+    bookId: 1,
+    isbn: "978-604-80-1234-5",
+    title: "Lập Trình Web Hiện Đại",
+    publisherName: "NXB CNTT",
+    publicationYear: 2023,
+    edition: "2nd",
+    language: "Tiếng Việt",
+    pages: 420,
+    description: "Sách về React & NodeJS",
+    coverImageUrl: "https://picsum.photos/300/450?1",
+    authorIds: [1],
+    categoryIds: [2],
+  },
+  {
+    bookId: 2, 
+    isbn: "978-604-80-5678-9",
+    title: "Cấu Trúc Dữ Liệu & Giải Thuật",
+    publisherName: "NXB Giáo Dục",
+    publicationYear: 2021,
+    edition: "1st",
+    language: "Tiếng Việt",
+    pages: 550,
+    description: "Nền tảng tư duy thuật toán",
+    coverImageUrl: "https://picsum.photos/300/450?2",
+    authorIds: [2],
+    categoryIds: [1, 4],
+  },
+];
+
+ useEffect(() => {
+    setBooks(BookDemoList);
+}, []);
 
     const [formData, setFormData] = useState({
         isbn: "",
@@ -81,11 +117,11 @@ export function BooksManagement({ onNavigate }) {
     // ----------------------------------------
     // FETCH DATA
     // ----------------------------------------
-    useEffect(() => {
-        fetchBooks();
-        fetchAuthors();
-        fetchCategories();
-    }, [searchQuery]);
+    // useEffect(() => {
+    //     fetchBooks();
+    //     fetchAuthors();
+    //     fetchCategories();
+    // }, [searchQuery]);
 
     const fetchBooks = async () => {
         try {
@@ -401,7 +437,7 @@ export function BooksManagement({ onNavigate }) {
                     <CardContent className="p-4">
                         <BooksTableView
                             books={filteredBooks}
-                            onView={(id) => onNavigate("detail", id)}
+                            onView={(id) => onNavigate("book-detail", id)}
                             onEdit={openEditDialog}
                             onDelete={handleDeleteBook}
                         />
@@ -410,7 +446,7 @@ export function BooksManagement({ onNavigate }) {
             ) : (
                 <BooksGridView
                     books={filteredBooks}
-                    onView={(id) => onNavigate("detail", id)}
+                    onView={(id) => onNavigate("book-detail", id)}
                     onEdit={openEditDialog}
                     onDelete={handleDeleteBook}
                 />
