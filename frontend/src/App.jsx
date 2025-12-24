@@ -9,7 +9,7 @@ import { AuthorDetail } from "./components/AuthorDetail";
 import { CategoriesManagement } from "./components/CategoriesManagement";
 import { MembersManagement } from "./components/MembersManagement";
 import { MemberDetail } from "./components/MemberDetail";
-import { StaffManagement } from "./components/StaffManagement";
+import { StaffsManagement } from "./components/StaffsManagement";
 import { LoansManagement } from "./components/LoansManagement";
 import { ReservationsManagement } from "./components/ReservationsManagement";
 import { FinesManagement } from "./components/FinesManagement";
@@ -20,7 +20,7 @@ import { Login } from "./components/Login";
 export default function App() {
     const [currentPage, setCurrentPage] = useState("dashboard");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userType, setUserType] = useState("Staff");
+    const [userType, setUserType] = useState("staff");
     const [selectedId, setSelectedId] = useState(null);
 
     const handleLogin = (type) => {
@@ -84,7 +84,7 @@ export default function App() {
                     <MembersManagement onNavigate={handleNavigate} />
                 );
             case "staff":
-                return <StaffManagement />;
+                return <StaffsManagement onNavigate={handleNavigate} />;
             case "loans":
                 return <LoansManagement />;
             case "reservations":

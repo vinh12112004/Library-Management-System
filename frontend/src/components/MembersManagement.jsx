@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -11,6 +11,14 @@ import {
     SelectValue,
 } from "./ui/select";
 import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "./ui/dialog";
+import { Label } from "./ui/label";
+import {
     Table,
     TableBody,
     TableCell,
@@ -18,39 +26,155 @@ import {
     TableHeader,
     TableRow,
 } from "./ui/table";
-import { Search, Plus, Eye, User } from "lucide-react";
-import { mockMembers } from "../data/mockData";
+import { Search, Plus, Eye, User, Edit, Trash2 } from "lucide-react";
+
+import {
+    getMembers,
+    updateMember,
+    deleteMember,
+} from "../services/memberService";
+import { registerMember } from "../services/authService";
 
 export function MembersManagement({ onNavigate }) {
-    const [members, setMembers] = useState(mockMembers || []);
+    const [members, setMembers] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("");
-    const [membershipFilter, setMembershipFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [membershipFilter, setMembershipFilter] = useState("all");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [editingMember, setEditingMember] = useState(null);
 
-    const statuses = ["Active", "Suspended", "Expired"];
-    const memberships = ["Premium", "Student"];
+    const [formData, setFormData] = useState({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        dateOfBirth: "",
+        idCard: "",
+        membershipType: 0,
+        expiryDate: "",
+        status: 0,
+    });
+
+    const [addFormData, setAddFormData] = useState({
+        memberCode: "",
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        dateOfBirth: "",
+        idCard: "",
+        password: "",
+    });
+
+    // Status mapping - support both string and number
+    const statusMap = {
+        0: "Active",
+        1: "Suspended",
+        2: "Expired",
+        Active: "Active",
+        Suspended: "Suspended",
+        Expired: "Expired",
+    };
+
+    const statusStringToNumber = {
+        Active: 0,
+        Suspended: 1,
+        Expired: 2,
+    };
+
+    const membershipMap = {
+        0: "Student",
+        1: "Teacher",
+        2: "Community",
+        Student: "Student",
+        Teacher: "Teacher",
+        Community: "Community",
+    };
+
+    const membershipStringToNumber = {
+        Student: 0,
+        Teacher: 1,
+        Community: 2,
+    };
+
+    const statuses = [
+        { value: 0, label: "Active" },
+        { value: 1, label: "Suspended" },
+        { value: 2, label: "Expired" },
+    ];
+
+    const memberships = [
+        { value: 0, label: "Student" },
+        { value: 1, label: "Teacher" },
+        { value: 2, label: "Community" },
+    ];
+
+    // Load data from API
+    useEffect(() => {
+        loadMembers();
+    }, []);
+
+    const loadMembers = async () => {
+        try {
+            const data = await getMembers();
+            // Normalize data - convert string to number and add both formats
+            const normalizedData = data.map((member) => ({
+                ...member,
+                statusNumber:
+                    typeof member.status === "string"
+                        ? statusStringToNumber[member.status]
+                        : member.status,
+                statusString:
+                    typeof member.status === "string"
+                        ? member.status
+                        : statusMap[member.status],
+                membershipTypeNumber:
+                    typeof member.membershipType === "string"
+                        ? membershipStringToNumber[member.membershipType]
+                        : member.membershipType,
+                membershipTypeString:
+                    typeof member.membershipType === "string"
+                        ? member.membershipType
+                        : membershipMap[member.membershipType],
+            }));
+            setMembers(normalizedData);
+        } catch (error) {
+            console.error("Error fetching members:", error);
+        }
+    };
 
     const filteredMembers = members.filter((member) => {
         const matchesSearch =
-            member.FullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            member.Email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            member.MemberCode.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter
-            ? member.Status === statusFilter
-            : true;
-        const matchesMembership = membershipFilter
-            ? member.MembershipType === membershipFilter
-            : true;
+            member.fullName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            member.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            member.memberCode
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+
+        const matchesStatus =
+            statusFilter === "all" ||
+            member.statusNumber === parseInt(statusFilter);
+
+        const matchesMembership =
+            membershipFilter === "all" ||
+            member.membershipTypeNumber === parseInt(membershipFilter);
+
         return matchesSearch && matchesStatus && matchesMembership;
     });
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case "Active":
+        // Handle both number and string
+        const statusNum =
+            typeof status === "string" ? statusStringToNumber[status] : status;
+        switch (statusNum) {
+            case 0:
                 return "bg-green-100 text-green-700";
-            case "Suspended":
+            case 1:
                 return "bg-red-100 text-red-700";
-            case "Expired":
+            case 2:
                 return "bg-gray-100 text-gray-700";
             default:
                 return "bg-gray-100 text-gray-700";
@@ -58,13 +182,103 @@ export function MembersManagement({ onNavigate }) {
     };
 
     const getMembershipColor = (type) => {
-        switch (type) {
-            case "Premium":
-                return "bg-purple-100 text-purple-700";
-            case "Student":
+        // Handle both number and string
+        const typeNum =
+            typeof type === "string" ? membershipStringToNumber[type] : type;
+        switch (typeNum) {
+            case 0: // Student
                 return "bg-blue-100 text-blue-700";
+            case 1: // Teacher
+                return "bg-purple-100 text-purple-700";
+            case 2: // Community
+                return "bg-gray-100 text-gray-700";
             default:
                 return "bg-gray-100 text-gray-700";
+        }
+    };
+
+    const convertDateToISO = (dateStr) => {
+        if (!dateStr) return "";
+        const [day, month, year] = dateStr.split("-");
+        return `${year}-${month}-${day}`;
+    };
+
+    const openAddDialog = () => {
+        setAddFormData({
+            memberCode: "",
+            fullName: "",
+            email: "",
+            phone: "",
+            address: "",
+            dateOfBirth: "",
+            idCard: "",
+            password: "",
+        });
+        setIsAddDialogOpen(true);
+    };
+
+    const openEditDialog = (member) => {
+        setFormData({
+            fullName: member.fullName || "",
+            email: member.email || "",
+            phone: member.phone || "",
+            address: member.address || "",
+            dateOfBirth: convertDateToISO(member.dateOfBirth) || "",
+            idCard: member.idCard || "",
+            membershipType: member.membershipTypeNumber,
+            expiryDate: member.expiryDate
+                ? new Date(member.expiryDate).toISOString().split("T")[0]
+                : "",
+            status: member.statusNumber,
+        });
+        setEditingMember(member);
+        setIsDialogOpen(true);
+    };
+
+    const handleAdd = async () => {
+        try {
+            await registerMember(addFormData);
+            await loadMembers();
+            setIsAddDialogOpen(false);
+        } catch (error) {
+            console.error("Error registering member:", error);
+            alert(error.response?.data || "Failed to register member");
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            const payload = {
+                fullName: formData.fullName,
+                email: formData.email || null,
+                phone: formData.phone || null,
+                address: formData.address || null,
+                dateOfBirth: formData.dateOfBirth || null,
+                idCard: formData.idCard || null,
+                membershipType: parseInt(formData.membershipType),
+                expiryDate: formData.expiryDate || null,
+                status: parseInt(formData.status),
+            };
+
+            await updateMember(editingMember.memberId, payload);
+            await loadMembers();
+            setIsDialogOpen(false);
+            setEditingMember(null);
+        } catch (error) {
+            console.error("Error updating member:", error);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this member?")) {
+            return;
+        }
+
+        try {
+            await deleteMember(id);
+            setMembers(members.filter((m) => m.memberId !== id));
+        } catch (error) {
+            console.error("Error deleting member:", error);
         }
     };
 
@@ -75,7 +289,10 @@ export function MembersManagement({ onNavigate }) {
                     <h1 className="text-3xl font-bold">Members Management</h1>
                     <p className="text-gray-600 mt-1">Manage library members</p>
                 </div>
-                <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                <Button
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={openAddDialog}
+                >
                     <Plus className="h-4 w-4" />
                     Add Member
                 </Button>
@@ -103,9 +320,13 @@ export function MembersManagement({ onNavigate }) {
                                 <SelectValue placeholder="Filter by status" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="all">All Status</SelectItem>
                                 {statuses.map((status) => (
-                                    <SelectItem key={status} value={status}>
-                                        {status}
+                                    <SelectItem
+                                        key={status.value}
+                                        value={status.value.toString()}
+                                    >
+                                        {status.label}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -119,9 +340,15 @@ export function MembersManagement({ onNavigate }) {
                                 <SelectValue placeholder="Filter by membership" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="all">
+                                    All Membership
+                                </SelectItem>
                                 {memberships.map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                        {type}
+                                    <SelectItem
+                                        key={type.value}
+                                        value={type.value.toString()}
+                                    >
+                                        {type.label}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -142,51 +369,82 @@ export function MembersManagement({ onNavigate }) {
                                 <TableHead>Phone</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Membership Type</TableHead>
-                                <TableHead>Actions</TableHead>
+                                <TableHead className="text-right">
+                                    Actions
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredMembers.map((member) => (
-                                <TableRow key={member.MemberCode}>
-                                    <TableCell>{member.MemberCode}</TableCell>
+                                <TableRow key={member.memberId}>
+                                    <TableCell>{member.memberCode}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <User className="h-5 w-5 text-gray-500" />
-                                            <span>{member.FullName}</span>
+                                            <span>{member.fullName}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{member.Email}</TableCell>
-                                    <TableCell>{member.Phone}</TableCell>
+                                    <TableCell>
+                                        {member.email || "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                        {member.phone || "N/A"}
+                                    </TableCell>
                                     <TableCell>
                                         <Badge
                                             className={getStatusColor(
-                                                member.Status
+                                                member.status
                                             )}
                                         >
-                                            {member.Status}
+                                            {member.statusString}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
                                         <Badge
                                             className={getMembershipColor(
-                                                member.MembershipType
+                                                member.membershipType
                                             )}
                                         >
-                                            {member.MembershipType}
+                                            {member.membershipTypeString}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                onNavigate(member.MemberCode)
-                                            }
-                                            className="flex items-center gap-1"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                            View
-                                        </Button>
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    onNavigate(
+                                                        "member-detail",
+                                                        member.memberId
+                                                    )
+                                                }
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    openEditDialog(member)
+                                                }
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+
+                                            <Button
+                                                variant="destructive"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleDelete(
+                                                        member.memberId
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -194,6 +452,328 @@ export function MembersManagement({ onNavigate }) {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Add Member Dialog */}
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Add New Member</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <Label>Member Code (Optional)</Label>
+                            <Input
+                                value={addFormData.memberCode}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        memberCode: e.target.value,
+                                    })
+                                }
+                                placeholder="Auto-generated if empty"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Full Name *</Label>
+                            <Input
+                                value={addFormData.fullName}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        fullName: e.target.value,
+                                    })
+                                }
+                                placeholder="Full name"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Email</Label>
+                            <Input
+                                type="email"
+                                value={addFormData.email}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        email: e.target.value,
+                                    })
+                                }
+                                placeholder="Email"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Phone</Label>
+                            <Input
+                                value={addFormData.phone}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        phone: e.target.value,
+                                    })
+                                }
+                                placeholder="Phone"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>ID Card</Label>
+                            <Input
+                                value={addFormData.idCard}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        idCard: e.target.value,
+                                    })
+                                }
+                                placeholder="ID Card"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Date of Birth</Label>
+                            <Input
+                                type="date"
+                                value={addFormData.dateOfBirth}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        dateOfBirth: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Password *</Label>
+                            <Input
+                                type="password"
+                                value={addFormData.password}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        password: e.target.value,
+                                    })
+                                }
+                                placeholder="Password"
+                                required
+                            />
+                        </div>
+
+                        <div className="col-span-2">
+                            <Label>Address</Label>
+                            <Input
+                                value={addFormData.address}
+                                onChange={(e) =>
+                                    setAddFormData({
+                                        ...addFormData,
+                                        address: e.target.value,
+                                    })
+                                }
+                                placeholder="Address"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAddDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAdd}>Register Member</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Dialog */}
+            <Dialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsDialogOpen(false);
+                        setEditingMember(null);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit Member</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <Label>Full Name</Label>
+                            <Input
+                                value={formData.fullName}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        fullName: e.target.value,
+                                    })
+                                }
+                                placeholder="Full name"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Email</Label>
+                            <Input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        email: e.target.value,
+                                    })
+                                }
+                                placeholder="Email"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Phone</Label>
+                            <Input
+                                value={formData.phone}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        phone: e.target.value,
+                                    })
+                                }
+                                placeholder="Phone"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>ID Card</Label>
+                            <Input
+                                value={formData.idCard}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        idCard: e.target.value,
+                                    })
+                                }
+                                placeholder="ID Card"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Date of Birth</Label>
+                            <Input
+                                type="date"
+                                value={formData.dateOfBirth}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        dateOfBirth: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Status</Label>
+                            <Select
+                                value={formData.status.toString()}
+                                onValueChange={(value) =>
+                                    setFormData({
+                                        ...formData,
+                                        status: parseInt(value),
+                                    })
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {statuses.map((s) => (
+                                        <SelectItem
+                                            key={s.value}
+                                            value={s.value.toString()}
+                                        >
+                                            {s.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label>Membership Type</Label>
+                            <Select
+                                value={formData.membershipType.toString()}
+                                onValueChange={(value) =>
+                                    setFormData({
+                                        ...formData,
+                                        membershipType: parseInt(value),
+                                    })
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {memberships.map((m) => (
+                                        <SelectItem
+                                            key={m.value}
+                                            value={m.value.toString()}
+                                        >
+                                            {m.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label>Expiry Date</Label>
+                            <Input
+                                type="date"
+                                value={formData.expiryDate}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        expiryDate: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+
+                        <div className="col-span-2">
+                            <Label>Address</Label>
+                            <Input
+                                value={formData.address}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        address: e.target.value,
+                                    })
+                                }
+                                placeholder="Address"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsDialogOpen(false);
+                                setEditingMember(null);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

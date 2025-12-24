@@ -3,7 +3,9 @@ using backend.DTOs.Author;
 using backend.DTOs.Book;
 using backend.DTOs.BookCopy;
 using backend.DTOs.Category;
+using backend.DTOs.Member;
 using backend.DTOs.Publisher;
+using backend.DTOs.Staff;
 using backend.Models;
 
 namespace backend.Helpers
@@ -51,6 +53,24 @@ namespace backend.Helpers
             CreateMap<CreateBookCopyDto, BookCopy>();
             CreateMap<UpdateBookCopyDto, BookCopy>();
             CreateMap<BookCopy, BookCopyDto>();
+            // Member   
+            CreateMap<Member, MemberDto>()
+                .ForMember(dest => dest.DateOfBirth,
+                    opt => opt.MapFrom(src => src.DateOfBirth.HasValue
+                        ? src.DateOfBirth.Value.ToString("dd-MM-yyyy")
+                        : null));
+            CreateMap<UpdateMemberDto, Member>();
+            
+            // Staff
+            CreateMap<Staff, StaffDto>()
+                .ForMember(dest => dest.Role,
+                    opt => opt.MapFrom(src =>
+                        src.Account.AccountRoles
+                            .Select(ar => ar.Role)
+                            .FirstOrDefault()
+                    ));
+
+            CreateMap<UpdateStaffDto, Staff>();
         }
     }
 }

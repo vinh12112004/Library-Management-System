@@ -23,64 +23,99 @@ namespace backend.Controllers
         [HttpPost("register-staff")]
         public async Task<ActionResult> RegisterStaff([FromBody] StaffRegisterDto dto, CancellationToken ct)
         {
-            if (await _db.Staffs.AnyAsync(x => x.Email == dto.Email, ct))
+            if (await _db.Accounts.AnyAsync(a => a.Username == dto.Email, ct))
                 return Conflict("Email đã tồn tại");
 
-            if (await _db.Staffs.AnyAsync(x => x.StaffCode == dto.StaffCode, ct))
+            if (await _db.Staffs.AnyAsync(s => s.StaffCode == dto.StaffCode, ct))
                 return Conflict("Mã nhân viên đã tồn tại");
 
-            var staff = new Staff
+            using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            var account = new Account
             {
-                StaffCode = dto.StaffCode,
-                FullName = dto.FullName,
-                Email = dto.Email,
-                Role = StaffRole.Staff,
+                Username = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 IsActive = true
             };
 
-            _db.Staffs.Add(staff);
+            _db.Accounts.Add(account);
             await _db.SaveChangesAsync(ct);
 
-            return CreatedAtAction(nameof(Login), new { email = dto.Email }, new { staffId = staff.StaffId, staff.Email });
+            var staff = new Staff
+            {
+                AccountId = account.AccountId,
+                StaffCode = dto.StaffCode,
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                IsActive = true
+            };
+
+            _db.Staffs.Add(staff);
+            _db.AccountRoles.Add(new AccountRole
+            {
+                AccountId = account.AccountId,
+                Role = dto.Role
+            });
+
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return Ok(new { staff.StaffId, staff.StaffCode });
         }
+
 
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto, CancellationToken ct)
         {
-            var staff = await _db.Staffs.FirstOrDefaultAsync(x => x.Email == dto.Email, ct);
-            if (staff == null || !staff.IsActive)
+            var account = await _db.Accounts
+                .Include(a => _db.AccountRoles.Where(r => r.AccountId == a.AccountId))
+                .FirstOrDefaultAsync(a => a.Username == dto.Email, ct);
+
+            if (account == null || !account.IsActive)
                 return Unauthorized("Thông tin đăng nhập không hợp lệ");
 
-            var ok = BCrypt.Net.BCrypt.Verify(dto.Password, staff.PasswordHash);
+            var ok = BCrypt.Net.BCrypt.Verify(dto.Password, account.PasswordHash);
             if (!ok) return Unauthorized("Thông tin đăng nhập không hợp lệ");
 
-            var (token, expiresAt) = _tokenService.CreateTokenForStaff(staff);
-            return new AuthResponseDto { Token = token, ExpiresAt = expiresAt };
+            var roles = await _db.AccountRoles
+                .Where(r => r.AccountId == account.AccountId)
+                .Select(r => r.Role.ToString())
+                .ToListAsync(ct);
+
+            var (token, expiresAt) = _tokenService.CreateToken(account, roles);
+
+            return new AuthResponseDto
+            {
+                Token = token,
+                ExpiresAt = expiresAt
+            };
         }
 
-        // NEW: Đăng ký Member
         [HttpPost("register-member")]
         public async Task<ActionResult> RegisterMember([FromBody] MemberRegisterDto dto, CancellationToken ct)
         {
-            // Email có thể unique theo business; kiểm tra trùng
-            if (!string.IsNullOrWhiteSpace(dto.Email))
-            {
-                var emailExists = await _db.Members.AnyAsync(m => m.Email == dto.Email, ct);
-                if (emailExists) return Conflict("Email đã tồn tại");
-            }
-
-            string memberCode = !string.IsNullOrWhiteSpace(dto.MemberCode)
-                ? dto.MemberCode!
+            var username = !string.IsNullOrWhiteSpace(dto.Email)
+                ? dto.Email
                 : GenerateMemberCode();
 
-            // MemberCode unique
-            if (await _db.Members.AnyAsync(m => m.MemberCode == memberCode, ct))
-                return Conflict("Mã thành viên đã tồn tại, vui lòng thử lại");
+            if (await _db.Accounts.AnyAsync(a => a.Username == username, ct))
+                return Conflict("Tài khoản đã tồn tại");
+
+            var account = new Account
+            {
+                Username = username,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                IsActive = true
+            };
+
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync(ct);
 
             var member = new Member
             {
-                MemberCode = memberCode,
+                AccountId = account.AccountId,
+                MemberCode = dto.MemberCode ?? GenerateMemberCode(),
                 FullName = dto.FullName,
                 Email = dto.Email,
                 Phone = dto.Phone,
@@ -89,46 +124,20 @@ namespace backend.Controllers
                 IdCard = dto.IdCard,
                 MembershipType = MembershipType.Community,
                 RegistrationDate = DateTime.UtcNow,
-                ExpiryDate = null,
-                Status = MemberStatus.Active,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Status = MemberStatus.Active
             };
 
             _db.Members.Add(member);
+
+            _db.AccountRoles.Add(new AccountRole
+            {
+                AccountId = account.AccountId,
+                Role = RoleType.Reader
+            });
+
             await _db.SaveChangesAsync(ct);
 
-            return CreatedAtAction(nameof(LoginMember), new { identifier = member.Email ?? member.MemberCode }, new { memberId = member.MemberId, member.MemberCode, member.Email });
-        }
-
-        // NEW: Đăng nhập Member bằng Email hoặc MemberCode
-        [HttpPost("login-member")]
-        public async Task<ActionResult<AuthResponseDto>> LoginMember([FromBody] MemberLoginDto dto, CancellationToken ct)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Identifier))
-                return BadRequest("Thiếu thông tin đăng nhập");
-
-            var identifier = dto.Identifier.Trim();
-            Member? member;
-
-            if (identifier.Contains('@'))
-            {
-                member = await _db.Members.FirstOrDefaultAsync(m => m.Email == identifier, ct);
-            }
-            else
-            {
-                member = await _db.Members.FirstOrDefaultAsync(m => m.MemberCode == identifier, ct);
-            }
-
-            if (member == null) return Unauthorized("Thông tin đăng nhập không hợp lệ");
-            if (member.Status != MemberStatus.Active) return Forbid("Tài khoản không ở trạng thái hoạt động");
-
-            var ok = !string.IsNullOrEmpty(member.PasswordHash) && BCrypt.Net.BCrypt.Verify(dto.Password, member.PasswordHash);
-            if (!ok) return Unauthorized("Thông tin đăng nhập không hợp lệ");
-
-            var (token, expiresAt) = _tokenService.CreateTokenForMember(member);
-            return new AuthResponseDto { Token = token, ExpiresAt = expiresAt };
+            return Ok(new { member.MemberId, member.MemberCode });
         }
 
         private static string GenerateMemberCode()

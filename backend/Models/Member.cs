@@ -8,6 +8,9 @@ namespace backend.Models
         public int MemberId { get; set; }
 
         [Required]
+        public int AccountId { get; set; }
+
+        [Required]
         [MaxLength(20)]
         public string MemberCode { get; set; }
 
@@ -29,19 +32,16 @@ namespace backend.Models
 
         public MembershipType MembershipType { get; set; } = MembershipType.Community;
 
-        [Required]
         public DateTime RegistrationDate { get; set; }
-
         public DateTime? ExpiryDate { get; set; }
-        public MemberStatus Status { get; set; } = MemberStatus.Active;
 
-        [MaxLength(255)]
-        public string PasswordHash { get; set; }
+        public MemberStatus Status { get; set; } = MemberStatus.Active;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+        // Navigation
+        public virtual Account Account { get; set; }
         public virtual ICollection<Loan> Loans { get; set; }
         public virtual ICollection<Reservation> Reservations { get; set; }
         public virtual ICollection<Fine> Fines { get; set; }

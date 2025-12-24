@@ -9,52 +9,50 @@ namespace backend.Services
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
+
         public TokenService(IConfiguration config)
         {
             _config = config;
         }
 
-        public (string token, DateTime expiresAt) CreateTokenForStaff(Staff staff)
+        public (string token, DateTime expiresAt) CreateToken(
+            Account account,
+            IEnumerable<string> roles
+        )
         {
-            return CreateToken(
-                new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, staff.StaffId.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, staff.Email),
-                    new Claim(ClaimTypes.Name, staff.FullName),
-                    new Claim(ClaimTypes.Role, staff.Role.ToString()),
-                    new Claim("user_type", "Staff"),
-                    new Claim("staff_code", staff.StaffCode)
-                }
-            );
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, account.AccountId.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, account.Username),
+                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString())
+            };
+
+            // Add roles (RẤT QUAN TRỌNG cho [Authorize(Roles=...)])
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            return GenerateJwt(claims);
         }
 
-        public (string token, DateTime expiresAt) CreateTokenForMember(Member member)
-        {
-            // Role cố định: "Member"
-            return CreateToken(
-                new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, member.MemberId.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, member.Email ?? string.Empty),
-                    new Claim(ClaimTypes.Name, member.FullName),
-                    new Claim(ClaimTypes.Role, "Member"),
-                    new Claim("user_type", "Member"),
-                    new Claim("member_code", member.MemberCode)
-                }
-            );
-        }
-
-        private (string token, DateTime expiresAt) CreateToken(IEnumerable<Claim> claims)
+        private (string token, DateTime expiresAt) GenerateJwt(IEnumerable<Claim> claims)
         {
             var jwtSection = _config.GetSection("Jwt");
-            var key = jwtSection.GetValue<string>("Key")!;
+
+            var key = jwtSection.GetValue<string>("Key")
+                      ?? throw new InvalidOperationException("JWT Key not configured");
+
             var issuer = jwtSection.GetValue<string>("Issuer");
             var audience = jwtSection.GetValue<string>("Audience");
             var expireMinutes = jwtSection.GetValue<int>("ExpireMinutes", 120);
 
+            var signingKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(key)
+            );
+
             var creds = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                signingKey,
                 SecurityAlgorithms.HmacSha256
             );
 

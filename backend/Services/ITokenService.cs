@@ -4,7 +4,9 @@ namespace backend.Services
 {
     public interface ITokenService
     {
-        (string token, DateTime expiresAt) CreateTokenForStaff(Staff staff);
-        (string token, DateTime expiresAt) CreateTokenForMember(Member member);
+        (string token, DateTime expiresAt) CreateToken(
+            Account account,
+            IEnumerable<string> roles
+        );
     }
 }

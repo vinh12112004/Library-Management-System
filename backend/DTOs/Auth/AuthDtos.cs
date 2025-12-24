@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using backend.Models;
 
 namespace backend.DTOs.Auth
 {
@@ -12,8 +13,11 @@ namespace backend.DTOs.Auth
         public string Email { get; set; } = default!;
         [Required, MinLength(6)]
         public string Password { get; set; } = default!;
-        [MaxLength(20)]
-        public string IdCard { get; set; }
+
+        [Required, MaxLength(10)]
+        public string Phone { get; set; } = default!;
+        [Required]
+        public RoleType Role { get; set; }
     }
 
     public class LoginDto

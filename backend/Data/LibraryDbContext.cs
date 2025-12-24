@@ -20,6 +20,9 @@ namespace backend.Data
         public DbSet<Fine> Fines => Set<Fine>();
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+        public DbSet<Account> Accounts => Set<Account>();
+        public DbSet<AccountRole> AccountRoles => Set<AccountRole>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -91,7 +94,11 @@ namespace backend.Data
                 e.HasIndex(x => x.Email).IsUnique(false);
                 e.Property(x => x.MembershipType).HasConversion<string>().HasMaxLength(30).HasDefaultValue(MembershipType.Community);
                 e.Property(x => x.Status).HasConversion<string>().HasMaxLength(30).HasDefaultValue(MemberStatus.Active);
-                e.Property(x => x.PasswordHash).HasMaxLength(255);
+                e.Property(x => x.AccountId).IsRequired();
+                e.HasOne(x => x.Account)
+                    .WithOne()
+                    .HasForeignKey<Member>(x => x.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 e.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
@@ -104,10 +111,39 @@ namespace backend.Data
                 e.Property(x => x.FullName).IsRequired().HasMaxLength(255);
                 e.Property(x => x.Email).IsRequired().HasMaxLength(100);
                 e.HasIndex(x => x.Email).IsUnique();
-                e.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).HasDefaultValue(StaffRole.Staff);
+                e.Property(x => x.AccountId).IsRequired();
+                e.HasOne(x => x.Account)
+                    .WithOne()
+                    .HasForeignKey<Staff>(x => x.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.Property(x => x.IsActive).HasDefaultValue(true);
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+            
+            // Account
+            modelBuilder.Entity<Account>(e =>
+            {
+                e.Property(x => x.Username).IsRequired().HasMaxLength(50);
+                e.HasIndex(x => x.Username).IsUnique();
                 e.Property(x => x.PasswordHash).IsRequired().HasMaxLength(255);
                 e.Property(x => x.IsActive).HasDefaultValue(true);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+            
+            // AccountRole
+            modelBuilder.Entity<AccountRole>(e =>
+            {
+                e.HasKey(x => x.AccountRoleId);
+
+                e.Property(x => x.Role)
+                    .HasConversion<string>()
+                    .HasMaxLength(30);
+
+                e.HasOne(x => x.Account)
+                    .WithMany(a => a.AccountRoles)
+                    .HasForeignKey(x => x.AccountId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Loan

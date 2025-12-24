@@ -8,6 +8,9 @@ namespace backend.Models
         public int StaffId { get; set; }
 
         [Required]
+        public int AccountId { get; set; }
+
+        [Required]
         [MaxLength(20)]
         public string StaffCode { get; set; }
 
@@ -21,21 +24,13 @@ namespace backend.Models
 
         [MaxLength(20)]
         public string Phone { get; set; }
-
-        [MaxLength(100)]
-        public string Position { get; set; }
-
-        public StaffRole Role { get; set; } = StaffRole.Staff;
-
-        [Required]
-        [MaxLength(255)]
-        public string PasswordHash { get; set; }
-
+        
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation
+        public virtual Account Account { get; set; }
         public virtual ICollection<Loan> Loans { get; set; }
         public virtual ICollection<Fine> Fines { get; set; }
     }

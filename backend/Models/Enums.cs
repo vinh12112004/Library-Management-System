@@ -19,10 +19,13 @@
     {
         Active, Suspended, Expired
     }
-
-    public enum StaffRole
+    
+    public enum RoleType
     {
-        Admin, Librarian, Staff
+        Admin = 0,
+        Librarian = 1,
+        Assistant = 2,
+        Reader = 3
     }
 
     public enum LoanStatus

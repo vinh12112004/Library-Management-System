@@ -14,7 +14,6 @@ import {
     BookmarkCheck,
     DollarSign,
     Star,
-    Activity,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -27,22 +26,20 @@ export function Layout({ children, currentPage, onNavigate, userType }) {
         { id: "categories", label: "Categories", icon: FolderTree },
         { id: "book-copies", label: "Book Copies", icon: BookCopy },
         { id: "members", label: "Members", icon: Users },
+        { id: "staff", label: "Staff", icon: UserCog },
         {
             id: "borrow-return",
             label: "Borrow & Return",
             icon: RefreshCw,
-            staffOnly: true,
         },
         { id: "loans", label: "Loans", icon: BookmarkCheck },
         { id: "reservations", label: "Reservations", icon: BookmarkCheck },
         { id: "fines", label: "Fines", icon: DollarSign },
         { id: "reviews", label: "Reviews", icon: Star },
-        { id: "staff", label: "Staff", icon: UserCog, staffOnly: true },
     ];
 
-    const filteredNavItems = navItems.filter(
-        (item) => !item.staffOnly || userType === "staff"
-    );
+    // Tạm thời bỏ filter để xem tất cả items
+    const filteredNavItems = navItems;
 
     return (
         <div className="flex h-screen bg-gray-50">
@@ -77,6 +74,12 @@ export function Layout({ children, currentPage, onNavigate, userType }) {
                                 (item.id === "authors" &&
                                     (currentPage === "authors" ||
                                         currentPage === "author-detail")) ||
+                                (item.id === "members" &&
+                                    (currentPage === "members" ||
+                                        currentPage === "member-detail")) ||
+                                (item.id === "staff" &&
+                                    (currentPage === "staff" ||
+                                        currentPage === "staff-detail")) ||
                                 currentPage === item.id;
                             return (
                                 <li key={item.id}>

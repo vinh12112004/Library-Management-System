@@ -1,4 +1,5 @@
-﻿using backend.Data;
+﻿using System.Text.Json.Serialization;
+using backend.Data;
 using backend.Helpers;
 using backend.Interfaces;
 using backend.Repositories;
@@ -7,6 +8,8 @@ using backend.Services.Author;
 using backend.Services.Book;
 using backend.Services.BookCopy;
 using backend.Services.Category;
+using backend.Services.Member;
+using backend.Services.Staff;
 using backend.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +54,14 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBookCopyRepository, BookCopyRepository>();
 builder.Services.AddScoped<IBookCopyService, BookCopyService>();
 
+// 🔹 Member Module 
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IMemberService, MemberService>();
+
+// 🔹 Staff Module 
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IStaffService, StaffService>();
+
 // 🔹 Controllers & Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -62,6 +73,17 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 // 🔹 Minio Storage Service
 builder.Services.Configure<MinioSettings>(builder.Configuration.GetSection("Minio"));
 builder.Services.AddSingleton<IMinioService, MinioService>();
+
+//
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(allowIntegerValues: true)
+        );
+    });
+
 // ====================================
 // BUILD APP
 // ====================================
