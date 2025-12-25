@@ -16,9 +16,9 @@ namespace backend.Services.Category
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(int pageNumber, int pageSize)
+        public async Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(CategoryQuery query)
         {
-            var pagedCategories = await _categoryRepository.GetAllAsync(pageNumber, pageSize);
+            var pagedCategories = await _categoryRepository.GetAllAsync(query);
 
             var dtoItems = pagedCategories.Items.Select(c => new CategoryDto
             {
@@ -33,6 +33,7 @@ namespace backend.Services.Category
                 pagedCategories.PageNumber,
                 pagedCategories.PageSize
             );
+
         }
 
         public async Task<CategoryDto?> GetCategoryByIdAsync(int id)

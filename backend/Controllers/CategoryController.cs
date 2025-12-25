@@ -17,13 +17,14 @@ namespace backend.Controllers
 
         // GET: api/Category
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery] CategoryQuery query)
         {
-            if (pageNumber < 1 || pageSize < 1)
-                return BadRequest("pageNumber và pageSize phải > 0");
+            if (query.PageNumber < 1 || query.PageSize < 1)
+                return BadRequest("PageNumber và PageSize phải > 0");
 
-            var result = await _categoryService.GetAllCategoriesAsync(pageNumber, pageSize);
+            query.PageSize = Math.Min(query.PageSize, 50);
+
+            var result = await _categoryService.GetAllCategoriesAsync(query);
             return Ok(result);
         }
 

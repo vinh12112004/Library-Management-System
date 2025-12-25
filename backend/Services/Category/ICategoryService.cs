@@ -5,7 +5,7 @@ namespace backend.Services.Category
 {
     public interface ICategoryService
     {
-        Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(int pageNumber, int pageSize);
+        Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(CategoryQuery query);
         Task<CategoryDto?> GetCategoryByIdAsync(int id);
         Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto);
         Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto);

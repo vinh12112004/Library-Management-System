@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.DTOs.Category;
 using backend.DTOs.Shared;
 using backend.Interfaces;
 using backend.Models;
@@ -15,23 +16,33 @@ namespace backend.Repositories
             _context = context;
         }
 
-        public async Task<PagedResult<Category>> GetAllAsync(int pageNumber, int pageSize)
+        public async Task<PagedResult<Category>> GetAllAsync(CategoryQuery query)
         {
-            var query = _context.Categories.AsQueryable();
+            var categories = _context.Categories.AsQueryable();
 
-            var totalCount = await query.CountAsync();
+            // 🔍 SEARCH theo Name
+            if (!string.IsNullOrWhiteSpace(query.Name))
+            {
+                var keyword = query.Name.Trim();
 
-            var items = await query
+                categories = categories.Where(c =>
+                    EF.Functions.Like(c.Name, $"%{keyword}%")
+                );
+            }
+
+            var totalCount = await categories.CountAsync();
+
+            var items = await categories
                 .OrderBy(c => c.CategoryId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
                 .ToListAsync();
 
             return new PagedResult<Category>(
                 items,
                 totalCount,
-                pageNumber,
-                pageSize
+                query.PageNumber,
+                query.PageSize
             );
         }
 
