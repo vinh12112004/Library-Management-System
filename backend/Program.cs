@@ -202,8 +202,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Management API V1");
     });
 }
-app.UseRouting();
 app.UseCors("AllowReact");
+
+app.UseRouting();
 // app.UseHttpsRedirection();
 
 app.UseAuthentication(); // Add this before UseAuthorization
