@@ -77,10 +77,27 @@ export function BookCopiesManagement() {
     const loadBookCopies = async () => {
         try {
             const data = await getBookCopies();
-            setCopies(data);
+            // Map string status về number
+            const mappedData = data.map((copy) => ({
+                ...copy,
+                status: statusStringToNumber(copy.status),
+            }));
+            setCopies(mappedData);
         } catch (error) {
             console.error("Error fetching book copies:", error);
         }
+    };
+
+    // Thêm helper function
+    const statusStringToNumber = (statusStr) => {
+        const map = {
+            Available: 0,
+            Borrowed: 1,
+            Maintenance: 2,
+            Lost: 3,
+            Damaged: 4,
+        };
+        return map[statusStr] ?? 0;
     };
 
     const filteredCopies = copies.filter((copy) => {

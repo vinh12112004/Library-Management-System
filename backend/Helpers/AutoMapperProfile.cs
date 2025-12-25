@@ -3,6 +3,7 @@ using backend.DTOs;
 using backend.DTOs.Author;
 using backend.DTOs.BookCopy;
 using backend.DTOs.Category;
+using backend.DTOs.Loan;
 using backend.DTOs.Member;
 using backend.DTOs.Publisher;
 using backend.DTOs.Staff;
@@ -84,6 +85,28 @@ namespace backend.Helpers
                     src.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault().Content ?? ""))
                 .ForMember(dest => dest.LastMessageTime, opt => opt.MapFrom(src => 
                     src.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault().CreatedAt));
+            
+                // Loan
+                CreateMap<Loan, LoanDto>()
+                    .ForMember(dest => dest.MemberName,
+                        opt => opt.MapFrom(src => src.Member.FullName))
+                    .ForMember(dest => dest.BookTitle,
+                        opt => opt.MapFrom(src => src.BookCopy.Book.Title))
+                    .ForMember(dest => dest.StaffName,
+                        opt => opt.MapFrom(src => src.Staff != null ? src.Staff.FullName : null))
+                    .ForMember(dest => dest.LoanDate,
+                        opt => opt.MapFrom(src => src.LoanDate.ToString("dd-MM-yyyy")))
+                    .ForMember(dest => dest.DueDate,
+                        opt => opt.MapFrom(src => src.DueDate.ToString("dd-MM-yyyy")))
+                    .ForMember(dest => dest.ReturnDate,
+                        opt => opt.MapFrom(src => src.ReturnDate.HasValue
+                            ? src.ReturnDate.Value.ToString("dd-MM-yyyy")
+                            : null))
+                    .ForMember(dest => dest.Status,
+                        opt => opt.MapFrom(src => src.Status.ToString()));
+
+                CreateMap<CreateLoanDto, Loan>();
+                CreateMap<UpdateLoanDto, Loan>();
         }
     }
 }

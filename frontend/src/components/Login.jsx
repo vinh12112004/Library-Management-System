@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,8 +7,18 @@ import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { BookOpen } from "lucide-react";
 import { login, decodeToken } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
-export function Login({ onLogin }) {
+export function Login() {
+    const navigate = useNavigate();
+    const { isAuthenticated, refresh } = useAuth();
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/dashboard", { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
@@ -40,32 +51,13 @@ export function Login({ onLogin }) {
                 sessionStorage.setItem("expiresAt", response.expiresAt);
             }
 
-            // Get role from JWT claims
-            const role =
-                decoded[
-                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-                ];
-
-            // Determine user type based on role
-            let userType = "staff"; // default
-            if (role === "Reader") {
-                userType = "member";
-            } else if (
-                role === "Admin" ||
-                role === "Librarian" ||
-                role === "Assistant"
-            ) {
-                userType = "staff";
-            }
-
-            // Call onLogin with user type and decoded token info
-            onLogin(userType, {
-                token: response.token,
-                userId: decoded.sub,
-                email: decoded.unique_name,
-                role: role,
-                expiresAt: response.expiresAt,
-            });
+            // Trigger AuthContext refresh
+            refresh();
+            
+            // Small delay to ensure context is updated
+            setTimeout(() => {
+                navigate("/dashboard", { replace: true });
+            }, 100);
         } catch (error) {
             console.error("Login error:", error);
             setError(

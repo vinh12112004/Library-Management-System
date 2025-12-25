@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { getBookById } from "@/services/bookService";
 
-export function BookDetail({ bookId, onBack }) {
+export function BookDetail() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const bookId = id;
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -32,7 +36,7 @@ export function BookDetail({ bookId, onBack }) {
     if (loading) {
         return (
             <div className="p-6">
-                <Button variant="ghost" onClick={onBack}>
+                <Button variant="ghost" onClick={() => navigate("/books")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>
@@ -45,7 +49,7 @@ export function BookDetail({ bookId, onBack }) {
     if (error) {
         return (
             <div className="p-6">
-                <Button variant="ghost" onClick={onBack}>
+                <Button variant="ghost" onClick={() => navigate("/books")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>
@@ -58,7 +62,7 @@ export function BookDetail({ bookId, onBack }) {
     if (!book) {
         return (
             <div className="p-6">
-                <Button variant="ghost" onClick={onBack}>
+                <Button variant="ghost" onClick={() => navigate("/books")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>
@@ -74,7 +78,7 @@ export function BookDetail({ bookId, onBack }) {
         <div className="p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={onBack}>
+                <Button variant="ghost" onClick={() => navigate("/books")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>

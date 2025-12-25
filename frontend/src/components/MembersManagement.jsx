@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -35,7 +36,8 @@ import {
 } from "../services/memberService";
 import { registerMember } from "../services/authService";
 
-export function MembersManagement({ onNavigate }) {
+export function MembersManagement() {
+    const navigate = useNavigate();
     const [members, setMembers] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -414,9 +416,8 @@ export function MembersManagement({ onNavigate }) {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() =>
-                                                    onNavigate(
-                                                        "member-detail",
-                                                        member.memberId
+                                                    navigate(
+                                                        `/members/${member.memberId}`
                                                     )
                                                 }
                                             >

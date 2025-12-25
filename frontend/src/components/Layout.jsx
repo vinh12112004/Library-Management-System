@@ -2,7 +2,6 @@ import {
     BookOpen,
     LayoutDashboard,
     Users,
-    RefreshCw,
     Menu,
     Bell,
     Search,
@@ -13,36 +12,42 @@ import {
     UserCog,
     BookmarkCheck,
     DollarSign,
-    Star,
     MessageCircle,
+    LogOut,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export function Layout({ children, currentPage, onNavigate, userType }) {
+export function Layout({ children, userType }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { roles, user, logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
+
+    // Determine user type from roles if not provided
+    const actualUserType = userType || (roles.includes("Reader") ? "reader" : "staff");
     const navItems = [
-        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { id: "books", label: "Books", icon: BookOpen },
-        { id: "authors", label: "Authors", icon: UserCircle },
-        { id: "categories", label: "Categories", icon: FolderTree },
-        { id: "book-copies", label: "Book Copies", icon: BookCopy },
-        { id: "members", label: "Members", icon: Users },
-        { id: "staff", label: "Staff", icon: UserCog },
-        {
-            id: "borrow-return",
-            label: "Borrow & Return",
-            icon: RefreshCw,
-        },
-        { id: "loans", label: "Loans", icon: BookmarkCheck },
-        { id: "reservations", label: "Reservations", icon: BookmarkCheck },
-        { id: "fines", label: "Fines", icon: DollarSign },
-        { id: "reviews", label: "Reviews", icon: Star },
-        { id: "chat", label: "Chat Support", icon: MessageCircle },
+        { id: "dashboard", path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { id: "books", path: "/books", label: "Books", icon: BookOpen },
+        { id: "authors", path: "/authors", label: "Authors", icon: UserCircle },
+        { id: "categories", path: "/categories", label: "Categories", icon: FolderTree },
+        { id: "book-copies", path: "/book-copies", label: "Book Copies", icon: BookCopy },
+        { id: "members", path: "/members", label: "Members", icon: Users },
+        { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
+        { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
+        { id: "fines", path: "/fines", label: "Fines", icon: DollarSign },
+        { id: "chat", path: "/chat", label: "Chat Support", icon: MessageCircle },
     ];
 
     // Tạm thời bỏ filter để xem tất cả items
     const filteredNavItems = navItems.filter((item) => {
-        if (userType === "reader") {
+        if (actualUserType === "reader") {
             // Reader chỉ cần Chat
             return item.id === "chat";
         }
@@ -73,26 +78,14 @@ export function Layout({ children, currentPage, onNavigate, userType }) {
                     <ul className="space-y-1 px-3">
                         {filteredNavItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive =
-                                (item.id === "dashboard" &&
-                                    currentPage === "dashboard") ||
-                                (item.id === "books" &&
-                                    (currentPage === "books" ||
-                                        currentPage === "book-detail")) ||
-                                (item.id === "authors" &&
-                                    (currentPage === "authors" ||
-                                        currentPage === "author-detail")) ||
-                                (item.id === "members" &&
-                                    (currentPage === "members" ||
-                                        currentPage === "member-detail")) ||
-                                (item.id === "staff" &&
-                                    (currentPage === "staff" ||
-                                        currentPage === "staff-detail")) ||
-                                currentPage === item.id;
+                            const isActive = location.pathname === item.path ||
+                                (item.id === "books" && location.pathname.startsWith("/books/")) ||
+                                (item.id === "authors" && location.pathname.startsWith("/authors/")) ||
+                                (item.id === "members" && location.pathname.startsWith("/members/"));
                             return (
                                 <li key={item.id}>
                                     <button
-                                        onClick={() => onNavigate(item.id)}
+                                        onClick={() => navigate(item.path)}
                                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                                             isActive
                                                 ? "bg-blue-50 text-blue-600"
@@ -111,19 +104,27 @@ export function Layout({ children, currentPage, onNavigate, userType }) {
                 </nav>
 
                 <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                             <User className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
                             <p className="text-sm font-medium text-gray-900">
-                                Admin User
+                                {user?.email?.split("@")[0] || "User"}
                             </p>
                             <p className="text-xs text-gray-500">
-                                admin@library.com
+                                {user?.email || "user@library.com"}
                             </p>
                         </div>
                     </div>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleLogout}
+                    >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Đăng xuất
+                    </Button>
                 </div>
             </aside>
 
