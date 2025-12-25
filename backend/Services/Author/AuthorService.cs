@@ -26,7 +26,8 @@ namespace backend.Services.Author
             {
                 AuthorId = a.AuthorId,
                 FullName = a.FullName,
-                Biography = a.Biography
+                Biography = a.Biography,
+                Nationality = a.Nationality,
             }).ToList();
 
             return new PagedResult<AuthorDto>(
