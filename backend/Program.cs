@@ -202,6 +202,19 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Management API V1");
     });
 }
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3000");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Authorization, Content-Type");
+        context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+        context.Response.StatusCode = 204;
+        return;
+    }
+    await next();
+});
 app.UseCors("AllowReact");
 
 app.UseRouting();
