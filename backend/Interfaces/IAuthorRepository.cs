@@ -1,10 +1,12 @@
-﻿using backend.Models;
+﻿using backend.DTOs.Author;
+using backend.DTOs.Shared;
+using backend.Models;
 
 namespace backend.Interfaces
 {
     public interface IAuthorRepository
     {
-        Task<IEnumerable<Author>> GetAllAsync();
+        Task<PagedResult<Author>> GetAllAsync(AuthorQuery query);
         Task<Author?> GetByIdAsync(int id);
         Task<Author> AddAsync(Author author);
         Task<Author> UpdateAsync(Author author);
