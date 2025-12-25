@@ -2,7 +2,6 @@ import {
     BookOpen,
     LayoutDashboard,
     Users,
-    RefreshCw,
     Menu,
     Bell,
     Search,
@@ -13,7 +12,6 @@ import {
     UserCog,
     BookmarkCheck,
     DollarSign,
-    Star,
     MessageCircle,
     LogOut,
 } from "lucide-react";
@@ -42,16 +40,8 @@ export function Layout({ children, userType }) {
         { id: "book-copies", path: "/book-copies", label: "Book Copies", icon: BookCopy },
         { id: "members", path: "/members", label: "Members", icon: Users },
         { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
-        {
-            id: "borrow-return",
-            path: "/borrow-return",
-            label: "Borrow & Return",
-            icon: RefreshCw,
-        },
         { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
-        { id: "reservations", path: "/reservations", label: "Reservations", icon: BookmarkCheck },
         { id: "fines", path: "/fines", label: "Fines", icon: DollarSign },
-        { id: "reviews", path: "/reviews", label: "Reviews", icon: Star },
         { id: "chat", path: "/chat", label: "Chat Support", icon: MessageCircle },
     ];
 
