@@ -9,6 +9,8 @@ export const getBooks = async (queryParameters = {}) => {
         params.append("pageSize", queryParameters.pageSize);
     if (queryParameters.searchTerm)
         params.append("searchTerm", queryParameters.searchTerm);
+    if (queryParameters.title)
+        params.append("title", queryParameters.title);
     if (queryParameters.sortBy) params.append("sortBy", queryParameters.sortBy);
     if (queryParameters.sortOrder)
         params.append("sortOrder", queryParameters.sortOrder);
