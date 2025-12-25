@@ -401,7 +401,8 @@ export function BooksManagement({ onNavigate }) {
                     <CardContent className="p-4">
                         <BooksTableView
                             books={filteredBooks}
-                            onView={(id) => onNavigate("detail", id)}
+                            onView={(id) => onNavigate("book-detail", id)}
+
                             onEdit={openEditDialog}
                             onDelete={handleDeleteBook}
                         />
@@ -410,7 +411,8 @@ export function BooksManagement({ onNavigate }) {
             ) : (
                 <BooksGridView
                     books={filteredBooks}
-                    onView={(id) => onNavigate("detail", id)}
+                    onView={(id) => onNavigate("book-detail", id)}
+
                     onEdit={openEditDialog}
                     onDelete={handleDeleteBook}
                 />
