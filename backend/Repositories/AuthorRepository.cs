@@ -1,4 +1,6 @@
 ﻿using backend.Data;
+using backend.DTOs.Author;
+using backend.DTOs.Shared;
 using backend.Interfaces;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +16,33 @@ namespace backend.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Author>> GetAllAsync()
+        public async Task<PagedResult<Author>> GetAllAsync(AuthorQuery query)
         {
-            return await _context.Authors.ToListAsync();
+            var authors = _context.Authors.AsQueryable();
+            
+            if (!string.IsNullOrWhiteSpace(query.Name))
+            {
+                var keyword = query.Name.Trim();
+
+                authors = authors.Where(a =>
+                    EF.Functions.Like(a.FullName, $"%{keyword}%")
+                );
+            }
+
+            var totalCount = await authors.CountAsync();
+
+            var items = await authors
+                .OrderBy(a => a.AuthorId)
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Author>(
+                items,
+                totalCount,
+                query.PageNumber,
+                query.PageSize
+            );
         }
 
         public async Task<Author?> GetByIdAsync(int id)

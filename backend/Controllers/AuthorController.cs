@@ -17,10 +17,15 @@ namespace backend.Controllers
 
         // GET: api/Author
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
+        public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors([FromQuery] AuthorQuery query)
         {
-            var authors = await _authorService.GetAllAuthorsAsync();
-            return Ok(authors);
+            if (query.PageNumber < 1 || query.PageSize < 1)
+                return BadRequest("PageNumber và PageSize phải > 0");
+
+            query.PageSize = Math.Min(query.PageSize, 50);
+
+            var result = await _authorService.GetAllAuthorsAsync(query);
+            return Ok(result);
         }
 
         // GET: api/Author/5

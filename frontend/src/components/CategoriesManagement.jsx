@@ -18,7 +18,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from "./ui/dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -33,6 +33,16 @@ export function CategoriesManagement() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
 
+    // State cho phân trang
+    const [pagination, setPagination] = useState({
+        pageNumber: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+    });
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -41,7 +51,7 @@ export function CategoriesManagement() {
     // Load categories từ backend
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [pagination.pageNumber, pagination.pageSize]);
 
     const fetchCategories = async () => {
         try {
@@ -107,6 +117,25 @@ export function CategoriesManagement() {
         } catch (err) {
             console.error("Error deleting category:", err);
             toast.error("Failed to delete category");
+        }
+    };
+
+    // Xử lý chuyển trang
+    const handlePreviousPage = () => {
+        if (pagination.hasPreviousPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber - 1,
+            }));
+        }
+    };
+
+    const handleNextPage = () => {
+        if (pagination.hasNextPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber + 1,
+            }));
         }
     };
 
@@ -182,6 +211,38 @@ export function CategoriesManagement() {
                             ))}
                         </TableBody>
                     </Table>
+
+                    {/* Phân trang */}
+                    <div className="flex items-center justify-between px-4 py-4 border-t">
+                        <div className="text-sm text-gray-600">
+                            Showing {categories.length} of{" "}
+                            {pagination.totalCount} categories
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handlePreviousPage}
+                                disabled={!pagination.hasPreviousPage}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Previous
+                            </Button>
+                            <div className="text-sm">
+                                Page {pagination.pageNumber} of{" "}
+                                {pagination.totalPages}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleNextPage}
+                                disabled={!pagination.hasNextPage}
+                            >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

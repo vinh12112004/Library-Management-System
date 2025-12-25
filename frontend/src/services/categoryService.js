@@ -1,8 +1,10 @@
 import apiClient from "./apiClient";
 
-// Lấy tất cả category
-export const getCategories = async () => {
-    const response = await apiClient.get("/Category");
+// Lấy tất cả category với phân trang
+export const getCategories = async (pageNumber = 1, pageSize = 10) => {
+    const response = await apiClient.get("/Category", {
+        params: { pageNumber, pageSize },
+    });
     return response.data;
 };
 
