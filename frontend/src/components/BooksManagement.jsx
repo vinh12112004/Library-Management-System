@@ -116,7 +116,7 @@ export function BooksManagement({ onNavigate }) {
 
     const fetchAuthors = async () => {
         try {
-            const response = await getAuthors();
+            const response = await getAuthors({ pageNumber: 1, pageSize: 10000 });
             setAuthors(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching authors:", error);
@@ -125,7 +125,7 @@ export function BooksManagement({ onNavigate }) {
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories();
+            const response = await getCategories({ pageNumber: 1, pageSize: 10000 });
             setCategories(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching categories:", error);

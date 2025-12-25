@@ -19,7 +19,22 @@ import {
     TableHeader,
     TableRow,
 } from "./ui/table";
-import { Search, Plus, Edit, Trash2, Eye } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "./ui/select";
+import {
+    Search,
+    Plus,
+    Edit,
+    Trash2,
+    Eye,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
 
 import {
     getAuthors,
@@ -46,6 +61,15 @@ export function AuthorsManagement({ onNavigate }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAuthor, setEditingAuthor] = useState(null);
 
+    const [pagination, setPagination] = useState({
+        pageNumber: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPages: 1,
+        hasPreviousPage: false,
+        hasNextPage: false,
+    });
+
     const [formData, setFormData] = useState({
         fullName: "",
         nationality: "",
@@ -55,10 +79,41 @@ export function AuthorsManagement({ onNavigate }) {
 
     // Load data
     useEffect(() => {
-        getAuthors()
-            .then((data) => setAuthors(data.items || data || []))
-            .catch((err) => console.error("Error fetching authors:", err));
-    }, []);
+        fetchAuthors();
+    }, [pagination.pageNumber, pagination.pageSize, searchQuery]);
+
+    const fetchAuthors = async () => {
+        try {
+            const response = await getAuthors({
+                pageNumber: pagination.pageNumber,
+                pageSize: pagination.pageSize,
+                searchTerm: searchQuery || undefined,
+            });
+
+            const items = response?.items || response || [];
+            const nextPageNumber = response?.pageNumber ?? pagination.pageNumber;
+            const nextPageSize = response?.pageSize ?? pagination.pageSize;
+            const totalCount = response?.totalCount ?? items.length;
+            const totalPages =
+                response?.totalPages ??
+                Math.max(1, Math.ceil(totalCount / nextPageSize));
+
+            setAuthors(items);
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: nextPageNumber,
+                pageSize: nextPageSize,
+                totalCount,
+                totalPages,
+                hasPreviousPage:
+                    response?.hasPreviousPage ?? nextPageNumber > 1,
+                hasNextPage:
+                    response?.hasNextPage ?? nextPageNumber < totalPages,
+            }));
+        } catch (err) {
+            console.error("Error fetching authors:", err);
+        }
+    };
 
     const openAddDialog = () => {
         setFormData({
@@ -75,12 +130,6 @@ export function AuthorsManagement({ onNavigate }) {
         if (!d) return "";
         const [day, month, year] = d.split("-");
         return `${year}-${month}-${day}`;
-    };
-
-    const convertToDisplayDate = (isoDate) => {
-        if (!isoDate) return "";
-        const [year, month, day] = isoDate.split("-");
-        return `${day}-${month}-${year}`;
     };
 
     const openEditDialog = (author) => {
@@ -103,23 +152,13 @@ export function AuthorsManagement({ onNavigate }) {
         if (editingAuthor) {
             // UPDATE
             const updated = await updateAuthor(editingAuthor.authorId, payload);
-            setAuthors(
-                authors.map((a) =>
-                    a.authorId === editingAuthor.authorId
-                        ? {
-                              ...a,
-                              ...payload,
-                              dateOfBirth: convertToDisplayDate(
-                                  payload.dateOfBirth
-                              ),
-                          }
-                        : a
-                )
-            );
+            if (updated) {
+                await fetchAuthors();
+            }
         } else {
             // CREATE
-            const newAuthor = await createAuthor(payload);
-            setAuthors([...authors, newAuthor]);
+            await createAuthor(payload);
+            await fetchAuthors();
         }
 
         setIsDialogOpen(false);
@@ -128,7 +167,34 @@ export function AuthorsManagement({ onNavigate }) {
 
     const handleDelete = async (id) => {
         await deleteAuthor(id);
-        setAuthors(authors.filter((a) => a.authorId !== id));
+        await fetchAuthors();
+    };
+
+    const handlePreviousPage = () => {
+        if (pagination.hasPreviousPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber - 1,
+            }));
+        }
+    };
+
+    const handleNextPage = () => {
+        if (pagination.hasNextPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber + 1,
+            }));
+        }
+    };
+
+    const handlePageSizeChange = (value) => {
+        const nextSize = Number(value) || 10;
+        setPagination((prev) => ({
+            ...prev,
+            pageSize: nextSize,
+            pageNumber: 1,
+        }));
     };
 
     const filteredAuthors = authors.filter((author) => {
@@ -144,12 +210,12 @@ export function AuthorsManagement({ onNavigate }) {
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">Authors Management</h1>
-                    <p className="text-muted-foreground">Manage all authors.</p>
+                    <h1 className="text-3xl font-bold">Authors Management</h1>
+                    <p className="text-gray-600 mt-1">Manage and organize authors</p>
                 </div>
 
                 {canManage && (
-                    <Button onClick={openAddDialog}>
+                    <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Author
                     </Button>
@@ -243,6 +309,59 @@ export function AuthorsManagement({ onNavigate }) {
                             ))}
                         </TableBody>
                     </Table>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardContent className="flex items-center justify-between px-4 py-4">
+                    <div className="text-sm text-gray-600">
+                        Showing {authors.length} of {pagination.totalCount} authors
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                            <span>Rows per page</span>
+                            <Select
+                                value={String(pagination.pageSize)}
+                                onValueChange={handlePageSizeChange}
+                            >
+                                <SelectTrigger className="h-9 w-24">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[5, 10, 20, 50].map((size) => (
+                                        <SelectItem key={size} value={String(size)}>
+                                            {size}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handlePreviousPage}
+                                disabled={!pagination.hasPreviousPage}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Previous
+                            </Button>
+                            <div className="text-sm">
+                                Page {pagination.pageNumber} of {pagination.totalPages}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleNextPage}
+                                disabled={!pagination.hasNextPage}
+                            >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

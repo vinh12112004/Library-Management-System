@@ -1,10 +1,19 @@
 import apiClient from "./apiClient";
 
-// Lấy tất cả category với phân trang
-export const getCategories = async (pageNumber = 1, pageSize = 10) => {
-    const response = await apiClient.get("/Category", {
-        params: { pageNumber, pageSize },
-    });
+// Lấy categories: hỗ trợ gọi kiểu (pageNumber, pageSize) hoặc object { pageNumber, pageSize, ... }
+export const getCategories = async (pageNumberOrOptions = 1, pageSize = 10) => {
+    let params;
+
+    if (
+        typeof pageNumberOrOptions === "object" &&
+        pageNumberOrOptions !== null
+    ) {
+        params = { pageNumber: 1, pageSize: 10, ...pageNumberOrOptions };
+    } else {
+        params = { pageNumber: pageNumberOrOptions, pageSize };
+    }
+
+    const response = await apiClient.get("/Category", { params });
     return response.data;
 };
 
