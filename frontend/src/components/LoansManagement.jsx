@@ -26,11 +26,15 @@ import {
     CheckCircle,
     AlertTriangle,
     Calendar,
+    Edit,
+    Trash2,
+    RefreshCw,
 } from "lucide-react";
 import {
     getLoans,
     createLoan,
     updateLoan,
+    deleteLoan,
     getLoansByMemberId,
 } from "../services/loanService";
 import { getMembers } from "../services/memberService";
@@ -43,6 +47,8 @@ export function LoansManagement() {
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [editingLoan, setEditingLoan] = useState(null);
+    const [showEditDialog, setShowEditDialog] = useState(false);
 
     // Calculate default due date (1 month from now)
     const getDefaultDueDate = () => {
@@ -59,7 +65,7 @@ export function LoansManagement() {
         notes: "",
     });
 
-    const statuses = ["Active", "Returned", "Overdue"];
+    const statuses = ["Borrowing", "Returned", "Overdue", "Lost"];
 
     // Load data khi component mount
     useEffect(() => {
@@ -126,6 +132,11 @@ export function LoansManagement() {
         const due = new Date(dueDate);
         return due < today;
     };
+    const parseDMY = (dateStr) => {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split("-");
+        return new Date(year, month - 1, day);
+    };
 
     const handleBorrow = async () => {
         try {
@@ -149,6 +160,9 @@ export function LoansManagement() {
     };
 
     const handleReturn = async (loanId) => {
+        if (!confirm("Are you sure you want to mark this book as returned?")) {
+            return;
+        }
         try {
             setLoading(true);
             await updateLoan(loanId, {
@@ -165,6 +179,83 @@ export function LoansManagement() {
         }
     };
 
+    const handleRenew = async (loanId, currentDueDate) => {
+        if (!confirm("Extend the due date by 1 month?")) {
+            return;
+        }
+        try {
+            setLoading(true);
+            const newDueDate = new Date(currentDueDate);
+            newDueDate.setMonth(newDueDate.getMonth() + 1);
+
+            await updateLoan(loanId, {
+                status: "Borrowing",
+            });
+            await loadLoans();
+            alert("Loan renewed successfully!");
+        } catch (error) {
+            console.error("Error renewing loan:", error);
+            alert("Error renewing loan. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (loanId) => {
+        if (
+            !confirm(
+                "Are you sure you want to delete this loan record? This action cannot be undone."
+            )
+        ) {
+            return;
+        }
+        try {
+            setLoading(true);
+            await deleteLoan(loanId);
+            await loadLoans();
+            alert("Loan deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting loan:", error);
+            alert("Error deleting loan. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEdit = (loan) => {
+        setEditingLoan({
+            loanId: loan.loanId,
+            returnDate: loan.returnDate
+                ? new Date(loan.returnDate).toISOString().split("T")[0]
+                : "",
+            status: loan.status,
+            notes: loan.notes || "",
+        });
+        setShowEditDialog(true);
+    };
+
+    const handleUpdateLoan = async () => {
+        try {
+            setLoading(true);
+            await updateLoan(editingLoan.loanId, {
+                returnDate: editingLoan.returnDate
+                    ? new Date(editingLoan.returnDate).toISOString()
+                    : null,
+                status: editingLoan.status,
+                notes: editingLoan.notes,
+            });
+            await loadLoans();
+            setShowEditDialog(false);
+            setEditingLoan(null);
+            alert("Loan updated successfully!");
+        } catch (error) {
+            console.error("Error updating loan:", error);
+            alert("Error updating loan. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6 p-4">
             <div>
@@ -176,7 +267,6 @@ export function LoansManagement() {
                 <TabsList className="mb-4">
                     <TabsTrigger value="all">All Loans</TabsTrigger>
                     <TabsTrigger value="borrow">Borrow Book</TabsTrigger>
-                    <TabsTrigger value="return">Return Book</TabsTrigger>
                 </TabsList>
 
                 {/* All Loans Tab */}
@@ -250,14 +340,18 @@ export function LoansManagement() {
                                                         {loan.bookTitle}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {parseDMY(
                                                             loan.loanDate
-                                                        ).toLocaleDateString()}
+                                                        )?.toLocaleDateString(
+                                                            "vi-VN"
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {parseDMY(
                                                             loan.dueDate
-                                                        ).toLocaleDateString()}
+                                                        )?.toLocaleDateString(
+                                                            "vi-VN"
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
                                                         {loan.returnDate
@@ -275,6 +369,21 @@ export function LoansManagement() {
                                                                 <AlertTriangle className="w-4 h-4" />
                                                                 Overdue
                                                             </Badge>
+                                                        ) : loan.status ===
+                                                          "Borrowing" ? (
+                                                            <Badge className="bg-blue-100 text-blue-700">
+                                                                Borrowing
+                                                            </Badge>
+                                                        ) : loan.status ===
+                                                          "Returned" ? (
+                                                            <Badge className="bg-green-100 text-green-700">
+                                                                Returned
+                                                            </Badge>
+                                                        ) : loan.status ===
+                                                          "Lost" ? (
+                                                            <Badge className="bg-gray-100 text-gray-700">
+                                                                Lost
+                                                            </Badge>
                                                         ) : (
                                                             <Badge variant="outline">
                                                                 {loan.status}
@@ -282,23 +391,76 @@ export function LoansManagement() {
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {loan.status ===
-                                                            "Active" && (
+                                                        <div className="flex gap-2">
+                                                            {loan.status ===
+                                                                "Borrowing" && (
+                                                                <>
+                                                                    <Button
+                                                                        onClick={() =>
+                                                                            handleReturn(
+                                                                                loan.loanId
+                                                                            )
+                                                                        }
+                                                                        size="sm"
+                                                                        variant="default"
+                                                                        disabled={
+                                                                            loading
+                                                                        }
+                                                                        title="Mark as returned"
+                                                                    >
+                                                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                                                        Return
+                                                                    </Button>
+                                                                    <Button
+                                                                        onClick={() =>
+                                                                            handleRenew(
+                                                                                loan.loanId,
+                                                                                loan.dueDate
+                                                                            )
+                                                                        }
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        disabled={
+                                                                            loading
+                                                                        }
+                                                                        title="Extend due date by 1 month"
+                                                                    >
+                                                                        <RefreshCw className="w-4 h-4 mr-1" />
+                                                                        Renew
+                                                                    </Button>
+                                                                </>
+                                                            )}
                                                             <Button
                                                                 onClick={() =>
-                                                                    handleReturn(
+                                                                    handleEdit(
+                                                                        loan
+                                                                    )
+                                                                }
+                                                                size="sm"
+                                                                variant="outline"
+                                                                disabled={
+                                                                    loading
+                                                                }
+                                                                title="Edit loan"
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() =>
+                                                                    handleDelete(
                                                                         loan.loanId
                                                                     )
                                                                 }
                                                                 size="sm"
+                                                                variant="destructive"
                                                                 disabled={
                                                                     loading
                                                                 }
+                                                                title="Delete loan record"
                                                             >
-                                                                <CheckCircle className="w-4 h-4 mr-1" />
-                                                                Return
+                                                                <Trash2 className="w-4 h-4" />
                                                             </Button>
-                                                        )}
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             );
@@ -458,25 +620,99 @@ export function LoansManagement() {
                         </CardContent>
                     </Card>
                 </TabsContent>
-
-                {/* Return Book Tab */}
-                <TabsContent value="return">
-                    <Card>
-                        <CardHeader>
-                            <div>
-                                <h2 className="text-lg font-bold">
-                                    Return Book
-                                </h2>
-                                <p className="text-gray-500">
-                                    Active loans are shown in the "All Loans"
-                                    tab. Click the Return button to process a
-                                    return.
-                                </p>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                </TabsContent>
             </Tabs>
+
+            {/* Edit Dialog */}
+            {showEditDialog && editingLoan && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-md">
+                        <CardHeader>
+                            <CardTitle>
+                                Edit Loan #{editingLoan.loanId}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="editStatus">Status</Label>
+                                <Select
+                                    value={editingLoan.status}
+                                    onValueChange={(val) =>
+                                        setEditingLoan({
+                                            ...editingLoan,
+                                            status: val,
+                                        })
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {statuses.map((status) => (
+                                            <SelectItem
+                                                key={status}
+                                                value={status}
+                                            >
+                                                {status}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="editReturnDate">
+                                    Return Date
+                                </Label>
+                                <Input
+                                    id="editReturnDate"
+                                    type="date"
+                                    value={editingLoan.returnDate}
+                                    onChange={(e) =>
+                                        setEditingLoan({
+                                            ...editingLoan,
+                                            returnDate: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+
+                            <div>
+                                <Label htmlFor="editNotes">Notes</Label>
+                                <Input
+                                    id="editNotes"
+                                    value={editingLoan.notes}
+                                    onChange={(e) =>
+                                        setEditingLoan({
+                                            ...editingLoan,
+                                            notes: e.target.value,
+                                        })
+                                    }
+                                    placeholder="Add notes..."
+                                />
+                            </div>
+
+                            <div className="flex gap-2 justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowEditDialog(false);
+                                        setEditingLoan(null);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleUpdateLoan}
+                                    disabled={loading}
+                                >
+                                    {loading ? "Saving..." : "Save Changes"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }
