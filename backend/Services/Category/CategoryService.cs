@@ -1,5 +1,6 @@
 using AutoMapper;
 using backend.DTOs.Category;
+using backend.DTOs.Shared;
 using backend.Interfaces;
 
 namespace backend.Services.Category
@@ -15,10 +16,23 @@ namespace backend.Services.Category
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+        public async Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(int pageNumber, int pageSize)
         {
-            var categories = await _categoryRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+            var pagedCategories = await _categoryRepository.GetAllAsync(pageNumber, pageSize);
+
+            var dtoItems = pagedCategories.Items.Select(c => new CategoryDto
+            {
+                CategoryId = c.CategoryId,
+                Name = c.Name,
+                Description = c.Description
+            }).ToList();
+
+            return new PagedResult<CategoryDto>(
+                dtoItems,
+                pagedCategories.TotalCount,
+                pagedCategories.PageNumber,
+                pagedCategories.PageSize
+            );
         }
 
         public async Task<CategoryDto?> GetCategoryByIdAsync(int id)

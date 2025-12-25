@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.DTOs.Shared;
 using backend.Interfaces;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,24 @@ namespace backend.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Category>> GetAllAsync()
+        public async Task<PagedResult<Category>> GetAllAsync(int pageNumber, int pageSize)
         {
-            return await _context.Categories.ToListAsync();
+            var query = _context.Categories.AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(c => c.CategoryId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Category>(
+                items,
+                totalCount,
+                pageNumber,
+                pageSize
+            );
         }
 
         public async Task<Category?> GetByIdAsync(int id)

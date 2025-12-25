@@ -1,10 +1,11 @@
 using backend.DTOs.Category;
+using backend.DTOs.Shared;
 
 namespace backend.Services.Category
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+        Task<PagedResult<CategoryDto>> GetAllCategoriesAsync(int pageNumber, int pageSize);
         Task<CategoryDto?> GetCategoryByIdAsync(int id);
         Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto);
         Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto);
