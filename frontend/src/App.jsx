@@ -11,9 +11,7 @@ import { MembersManagement } from "./components/MembersManagement";
 import { MemberDetail } from "./components/MemberDetail";
 import { StaffsManagement } from "./components/StaffsManagement";
 import { LoansManagement } from "./components/LoansManagement";
-import { ReservationsManagement } from "./components/ReservationsManagement";
 import { FinesManagement } from "./components/FinesManagement";
-import { ReviewsManagement } from "./components/ReviewsManagement";
 import { ActivityLogsManagement } from "./components/ActivityLogsManagement";
 import { Login } from "./components/Login";
 import { ChatSupport } from "./components/ChatSupport";
@@ -90,16 +88,8 @@ export default function App() {
                                     element={<LoansManagement />}
                                 />
                                 <Route
-                                    path="reservations"
-                                    element={<ReservationsManagement />}
-                                />
-                                <Route
                                     path="fines"
                                     element={<FinesManagement />}
-                                />
-                                <Route
-                                    path="reviews"
-                                    element={<ReviewsManagement />}
                                 />
                                 <Route
                                     path="activity-logs"
