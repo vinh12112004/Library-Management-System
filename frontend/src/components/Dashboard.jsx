@@ -22,7 +22,7 @@ import {
 } from "recharts";
 import { Badge } from "./ui/badge";
 
-export function Dashboard({ onNavigate }) {
+export function Dashboard() {
     const stats = [
         {
             title: "Books Borrowed",

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -50,7 +51,8 @@ import { toast } from "sonner";
 import { BooksTableView } from "./book/BooksTableView";
 import { BooksGridView } from "./book/BooksGridView";
 
-export function BooksManagement({ onNavigate }) {
+export function BooksManagement() {
+    const navigate = useNavigate();
     // ----------------------------------------
     // STATES
     // ----------------------------------------
@@ -401,7 +403,7 @@ export function BooksManagement({ onNavigate }) {
                     <CardContent className="p-4">
                         <BooksTableView
                             books={filteredBooks}
-                            onView={(id) => onNavigate("book-detail", id)}
+                            onView={(id) => navigate(`/books/${id}`)}
 
                             onEdit={openEditDialog}
                             onDelete={handleDeleteBook}
@@ -411,7 +413,7 @@ export function BooksManagement({ onNavigate }) {
             ) : (
                 <BooksGridView
                     books={filteredBooks}
-                    onView={(id) => onNavigate("book-detail", id)}
+                    onView={(id) => navigate(`/books/${id}`)}
 
                     onEdit={openEditDialog}
                     onDelete={handleDeleteBook}

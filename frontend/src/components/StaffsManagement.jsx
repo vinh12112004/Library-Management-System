@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -31,7 +32,8 @@ import { Search, Plus, Eye, UserCog, Edit, Trash2 } from "lucide-react";
 import { getStaffs, updateStaff, deleteStaff } from "../services/staffService";
 import { registerStaff } from "../services/authService";
 
-export function StaffsManagement({ onNavigate }) {
+export function StaffsManagement() {
+    const navigate = useNavigate();
     const [staffs, setStaffs] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -334,9 +336,8 @@ export function StaffsManagement({ onNavigate }) {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() =>
-                                                    onNavigate(
-                                                        "staff-detail",
-                                                        staff.staffId
+                                                    navigate(
+                                                        `/staff/${staff.staffId}`
                                                     )
                                                 }
                                             >
