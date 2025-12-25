@@ -56,7 +56,7 @@ export function AuthorsManagement({ onNavigate }) {
     // Load data
     useEffect(() => {
         getAuthors()
-            .then((data) => setAuthors(data))
+            .then((data) => setAuthors(data.items || data || []))
             .catch((err) => console.error("Error fetching authors:", err));
     }, []);
 

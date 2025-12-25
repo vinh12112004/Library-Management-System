@@ -46,7 +46,7 @@ export function CategoriesManagement() {
     const fetchCategories = async () => {
         try {
             const response = await getCategories();
-            setCategories(response || []);
+            setCategories(response?.items || response || []);
         } catch (err) {
             console.error("Error fetching categories:", err);
             toast.error("Failed to fetch categories");
