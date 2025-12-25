@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 
 // Lấy tất cả category
 export const getCategories = async () => {
-    const response = await apiClient.get("/Category");
+    const response = await apiClient.get("/Category?pageSize=10000");
     return response.data;
 };
 

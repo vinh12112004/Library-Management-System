@@ -1,7 +1,7 @@
 import apiClient from "./apiClient";
 
 export const getAuthors = async () => {
-    const response = await apiClient.get("/Author");
+    const response = await apiClient.get("/Author?pageSize=10000");
     return response.data;
 };
 
