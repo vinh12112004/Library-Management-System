@@ -55,19 +55,8 @@ export function CategoriesManagement() {
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories(
-                pagination.pageNumber,
-                pagination.pageSize
-            );
-            setCategories(response.items || []);
-            setPagination({
-                pageNumber: response.pageNumber,
-                pageSize: response.pageSize,
-                totalCount: response.totalCount,
-                totalPages: response.totalPages,
-                hasPreviousPage: response.hasPreviousPage,
-                hasNextPage: response.hasNextPage,
-            });
+            const response = await getCategories();
+            setCategories(response?.items || response || []);
         } catch (err) {
             console.error("Error fetching categories:", err);
             toast.error("Failed to fetch categories");

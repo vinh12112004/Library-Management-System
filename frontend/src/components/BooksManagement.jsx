@@ -63,6 +63,10 @@ export function BooksManagement({ onNavigate }) {
     const [editingBook, setEditingBook] = useState(null);
     const [coverImageFile, setCoverImageFile] = useState(null);
     const [viewMode, setViewMode] = useState("table");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
 
     const [formData, setFormData] = useState({
         isbn: "",
@@ -85,17 +89,25 @@ export function BooksManagement({ onNavigate }) {
         fetchBooks();
         fetchAuthors();
         fetchCategories();
-    }, [searchQuery]);
+    }, [searchQuery, page, pageSize]);
 
     const fetchBooks = async () => {
         try {
             const queryParams = {
-                searchTerm: searchQuery || undefined,
+                pageNumber: page,
+                pageSize: pageSize,
+                title: searchQuery || undefined,
                 sortBy: "Title",
                 sortOrder: "asc",
             };
             const response = await getBooks(queryParams);
             setBooks(response.items || []);
+            setTotalPages(response.totalPages || 1);
+            setTotalCount(response.totalCount || 0);
+            // Sync to server-reported page if available
+            if (response.pageNumber && response.pageNumber !== page) {
+                setPage(response.pageNumber);
+            }
         } catch (error) {
             console.error("Error fetching books:", error);
             toast.error("Failed to fetch books");
@@ -105,7 +117,7 @@ export function BooksManagement({ onNavigate }) {
     const fetchAuthors = async () => {
         try {
             const response = await getAuthors();
-            setAuthors(response.items || response || []);
+            setAuthors(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching authors:", error);
         }
@@ -114,7 +126,7 @@ export function BooksManagement({ onNavigate }) {
     const fetchCategories = async () => {
         try {
             const response = await getCategories();
-            setCategories(response || []);
+            setCategories(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching categories:", error);
         }
@@ -132,6 +144,20 @@ export function BooksManagement({ onNavigate }) {
                 : true;
         return matchesLanguage;
     });
+
+    const goToPreviousPage = () => {
+        setPage((prev) => Math.max(1, prev - 1));
+    };
+
+    const goToNextPage = () => {
+        setPage((prev) => (totalPages ? Math.min(totalPages, prev + 1) : prev + 1));
+    };
+
+    const handlePageSizeChange = (value) => {
+        const nextSize = Number(value) || 10;
+        setPageSize(nextSize);
+        setPage(1);
+    };
 
     // ----------------------------------------
     // HANDLERS
@@ -367,17 +393,23 @@ export function BooksManagement({ onNavigate }) {
                         <div className="relative w-full">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                             <Input
-                                placeholder="Search by title, ISBN, publisher..."
+                                placeholder="Search by title..."
                                 className="pl-10"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setPage(1);
+                                }}
                             />
                         </div>
 
                         {/* Language Filter */}
                         <Select
                             value={languageFilter}
-                            onValueChange={setLanguageFilter}
+                            onValueChange={(value) => {
+                                setLanguageFilter(value);
+                                setPage(1);
+                            }}
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Language" />
@@ -417,6 +449,56 @@ export function BooksManagement({ onNavigate }) {
                     onDelete={handleDeleteBook}
                 />
             )}
+
+            {/* Pagination */}
+            <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center">
+                <div className="text-sm text-muted-foreground">
+                    Page {page} / {totalPages || 1} · {totalCount} results
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3 justify-end px-2">
+                {/* Page Size Selector */}
+                <Select
+                    value={String(pageSize)}
+                    onValueChange={handlePageSizeChange}
+                >
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Page size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {[5, 10, 20, 50].map((size) => (
+                            <SelectItem key={size} value={String(size)}>
+                                {size} / page
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                {/* Navigation Buttons */}
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={goToPreviousPage}
+                        disabled={page <= 1}
+                    >
+                        Prev
+                    </Button>
+                    <span className="text-sm w-20 text-center">
+                        {page} / {totalPages || 1}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={goToNextPage}
+                        disabled={totalPages ? page >= totalPages : false}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+
 
             {/* Add/Edit Dialog */}
             <Dialog
