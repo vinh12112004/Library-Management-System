@@ -49,20 +49,24 @@ export function BooksTableView({ books, onView, onEdit, onDelete }) {
                                 >
                                     <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onEdit(book)}
-                                >
-                                    <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => onDelete(book.bookId)}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {onEdit && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onEdit(book)}
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </Button>
+                                )}
+                                {onDelete && (
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => onDelete(book.bookId)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                )}
                             </div>
                         </TableCell>
                     </TableRow>

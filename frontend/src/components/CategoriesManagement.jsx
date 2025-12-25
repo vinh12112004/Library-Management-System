@@ -34,8 +34,13 @@ import {
     updateCategory,
     deleteCategory,
 } from "../services/categoryService";
+import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/permission";
 
 export function CategoriesManagement() {
+    const { roles } = useAuth();
+    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const isReader = hasRole(roles, ["Reader"]);
     const [categories, setCategories] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
@@ -183,18 +188,22 @@ export function CategoriesManagement() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">
-                        Categories Management
+                        {canManage ? "Categories Management" : "Categories Library"}
                     </h1>
                     <p className="text-gray-600 mt-1">
-                        Organize and manage book categories
+                        {canManage
+                            ? "Organize and manage book categories"
+                            : "Explore and discover book categories"}
                     </p>
                 </div>
-                <Button
-                    onClick={openAddDialog}
-                    className="bg-blue-600 hover:bg-blue-700"
-                >
-                    <Plus className="mr-2 h-4 w-4" /> Add Category
-                </Button>
+                {canManage && (
+                    <Button
+                        onClick={openAddDialog}
+                        className="bg-blue-600 hover:bg-blue-700"
+                    >
+                        <Plus className="mr-2 h-4 w-4" /> Add Category
+                    </Button>
+                )}
             </div>
 
             <Card>
@@ -205,9 +214,11 @@ export function CategoriesManagement() {
                                 <TableHead>ID</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Description</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
+                                {canManage && (
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
+                                )}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -222,30 +233,34 @@ export function CategoriesManagement() {
                                     <TableCell className="text-gray-600">
                                         {category.description}
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    openEditDialog(category)
-                                                }
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        category.categoryId
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                                    {canManage && (
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        openEditDialog(
+                                                            category
+                                                        )
+                                                    }
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            category.categoryId
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>

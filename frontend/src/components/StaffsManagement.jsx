@@ -59,6 +59,20 @@ export function StaffsManagement() {
         role: 1,
     });
 
+    const validateStaffPayload = (payload) => {
+        const errors = [];
+        if (!payload.staffCode?.trim()) errors.push("Staff code is required");
+        if (!payload.fullName?.trim()) errors.push("Full name is required");
+        if (!payload.email?.trim()) errors.push("Email is required");
+        if (!payload.password || payload.password.length < 6)
+            errors.push("Password must be at least 6 characters");
+        const phone = payload.phone?.trim();
+        if (!phone) errors.push("Phone is required");
+        if (phone && phone.length > 10)
+            errors.push("Phone must be at most 10 characters");
+        return errors;
+    };
+
     // Role mapping - support both string and number
     const roleMap = {
         0: "Admin",
@@ -170,13 +184,30 @@ export function StaffsManagement() {
     };
 
     const handleAdd = async () => {
+        const payload = {
+            ...addFormData,
+            staffCode: addFormData.staffCode.trim(),
+            fullName: addFormData.fullName.trim(),
+            email: addFormData.email.trim(),
+            phone: addFormData.phone.trim(),
+            password: addFormData.password,
+            role: parseInt(addFormData.role),
+        };
+
+        const errors = validateStaffPayload(payload);
+        if (errors.length) {
+            alert(errors.join("\n"));
+            return;
+        }
+
         try {
-            await registerStaff(addFormData);
+            await registerStaff(payload);
             await loadStaffs();
             setIsAddDialogOpen(false);
         } catch (error) {
             console.error("Error registering staff:", error);
-            alert(error.response?.data || "Failed to register staff");
+            const message = error.response?.data || "Failed to register staff";
+            alert(message);
         }
     };
 
@@ -430,7 +461,7 @@ export function StaffsManagement() {
                         </div>
 
                         <div>
-                            <Label>Phone</Label>
+                            <Label>Phone *</Label>
                             <Input
                                 value={addFormData.phone}
                                 onChange={(e) =>
@@ -439,8 +470,9 @@ export function StaffsManagement() {
                                         phone: e.target.value,
                                     })
                                 }
-                                placeholder="Phone number (optional)"
-                                maxLength={20}
+                                placeholder="Phone number"
+                                required
+                                maxLength={10}
                             />
                         </div>
 
