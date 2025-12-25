@@ -4,6 +4,7 @@ namespace backend.Helpers
     {
         public string Endpoint { get; set; }
         public string AccessKey { get; set; }
+        public string PublicBaseUrl { get; set; } = null!;
         public string SecretKey { get; set; }
         public string Bucket { get; set; }
     }

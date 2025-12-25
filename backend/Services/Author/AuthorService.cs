@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using backend.DTOs.Author;
 using backend.DTOs.Book;
+using backend.DTOs.Shared;
 using backend.Interfaces;
 using backend.Models;
 
@@ -17,10 +18,24 @@ namespace backend.Services.Author
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<AuthorDto>> GetAllAuthorsAsync()
+        public async Task<PagedResult<AuthorDto>> GetAllAuthorsAsync(AuthorQuery query)
         {
-            var authors = await _authorRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<AuthorDto>>(authors);
+            var pagedAuthors = await _authorRepository.GetAllAsync(query);
+
+            var dtoItems = pagedAuthors.Items.Select(a => new AuthorDto
+            {
+                AuthorId = a.AuthorId,
+                FullName = a.FullName,
+                Biography = a.Biography,
+                Nationality = a.Nationality,
+            }).ToList();
+
+            return new PagedResult<AuthorDto>(
+                dtoItems,
+                pagedAuthors.TotalCount,
+                pagedAuthors.PageNumber,
+                pagedAuthors.PageSize
+            );
         }
 
         public async Task<AuthorDto?> GetAuthorByIdAsync(int id)
