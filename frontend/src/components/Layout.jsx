@@ -15,6 +15,7 @@ import {
     DollarSign,
     Star,
     MessageCircle,
+    LogOut,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -24,7 +25,12 @@ import { useAuth } from "../context/AuthContext";
 export function Layout({ children, userType }) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { roles } = useAuth();
+    const { roles, user, logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
 
     // Determine user type from roles if not provided
     const actualUserType = userType || (roles.includes("Reader") ? "reader" : "staff");
@@ -108,19 +114,27 @@ export function Layout({ children, userType }) {
                 </nav>
 
                 <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                             <User className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
                             <p className="text-sm font-medium text-gray-900">
-                                Admin User
+                                {user?.email?.split("@")[0] || "User"}
                             </p>
                             <p className="text-xs text-gray-500">
-                                admin@library.com
+                                {user?.email || "user@library.com"}
                             </p>
                         </div>
                     </div>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleLogout}
+                    >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Đăng xuất
+                    </Button>
                 </div>
             </aside>
 

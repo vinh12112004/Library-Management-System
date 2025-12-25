@@ -11,7 +11,7 @@ import { useAuth } from "../context/AuthContext";
 
 export function Login() {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, refresh } = useAuth();
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -51,14 +51,13 @@ export function Login() {
                 sessionStorage.setItem("expiresAt", response.expiresAt);
             }
 
-            // Get role from JWT claims
-            const role =
-                decoded[
-                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-                ];
-
-            // Navigate to dashboard after successful login
-            navigate("/dashboard", { replace: true });
+            // Trigger AuthContext refresh
+            refresh();
+            
+            // Small delay to ensure context is updated
+            setTimeout(() => {
+                navigate("/dashboard", { replace: true });
+            }, 100);
         } catch (error) {
             console.error("Login error:", error);
             setError(
