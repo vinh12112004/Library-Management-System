@@ -2,18 +2,21 @@ using AutoMapper;
 using backend.DTOs.Loan;
 using backend.DTOs.Shared;
 using backend.Interfaces;
+using backend.Services.Staff;
 
 namespace backend.Services.Loan
 {
     public class LoanService : ILoanService
     {
         private readonly ILoanRepository _loanRepository;
+        private readonly IStaffRepository _staffRepository;
         private readonly IMapper _mapper;
 
-        public LoanService(ILoanRepository loanRepository, IMapper mapper)
+        public LoanService(ILoanRepository loanRepository, IMapper mapper, IStaffRepository staffRepository)
         {
             _loanRepository = loanRepository;
             _mapper = mapper;
+            _staffRepository = staffRepository;
         }
 
         public async Task<PagedResult<LoanDto>> GetAllLoansAsync(LoanQuery query)
@@ -36,8 +39,10 @@ namespace backend.Services.Loan
             return loan == null ? null : _mapper.Map<LoanDto>(loan);
         }
 
-        public async Task<LoanDto> CreateLoanAsync(CreateLoanDto createLoanDto)
+        public async Task<LoanDto> CreateLoanAsync(int accid,CreateLoanDto createLoanDto)
         {
+            int staffid = await _staffRepository.GetStaffIdByAccountIdAsync(accid);
+            createLoanDto.StaffId = staffid;
             var loanModel = _mapper.Map<Models.Loan>(createLoanDto);
             var newLoan = await _loanRepository.AddAsync(loanModel);
             return _mapper.Map<LoanDto>(newLoan);

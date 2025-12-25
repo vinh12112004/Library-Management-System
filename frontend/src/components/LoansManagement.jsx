@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -28,40 +28,77 @@ import {
     Calendar,
 } from "lucide-react";
 import {
-    mockLoans,
-    mockMembers,
-    mockBookCopies,
-    mockStaff,
-} from "../data/mockData";
+    getLoans,
+    createLoan,
+    updateLoan,
+    getLoansByMemberId,
+} from "../services/loanService";
+import { getMembers } from "../services/memberService";
+import { getBooks } from "../services/bookService";
 
 export function LoansManagement() {
-    const [loans, setLoans] = useState(mockLoans);
+    const [loans, setLoans] = useState([]);
+    const [members, setMembers] = useState([]);
+    const [bookCopies, setBookCopies] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
-    const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
     const [borrowForm, setBorrowForm] = useState({
-        MemberId: "",
-        CopyId: "",
-        StaffId: "",
-        LoanDate: new Date().toISOString().split("T")[0],
-        DueDate: "",
+        memberId: "",
+        copyId: "",
+        loanDate: new Date().toISOString().split("T")[0],
+        dueDate: "",
+        notes: "",
     });
 
     const statuses = ["Active", "Returned", "Overdue"];
-    const activeMembers = mockMembers.filter((m) => m.Status === "Active");
-    const availableCopies = mockBookCopies.filter(
-        (c) => c.Status === "Available"
-    );
+
+    // Load data khi component mount
+    useEffect(() => {
+        loadLoans();
+        loadMembers();
+        loadBookCopies();
+    }, []);
+
+    const loadLoans = async () => {
+        try {
+            setLoading(true);
+            const data = await getLoans({ pageNumber: 1, pageSize: 100 });
+            setLoans(data.items || data);
+        } catch (error) {
+            console.error("Error loading loans:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadMembers = async () => {
+        try {
+            const data = await getMembers();
+            setMembers(data.filter((m) => m.status === "Active"));
+        } catch (error) {
+            console.error("Error loading members:", error);
+        }
+    };
+
+    const loadBookCopies = async () => {
+        try {
+            const data = await getBooks({ pageNumber: 1, pageSize: 100 });
+            // Giả sử API trả về books với copies
+            setBookCopies(data.items || data);
+        } catch (error) {
+            console.error("Error loading book copies:", error);
+        }
+    };
 
     const filteredLoans = loans.filter((loan) => {
         const matchesSearch =
-            loan.MemberName?.toLowerCase().includes(
-                searchQuery.toLowerCase()
-            ) ||
-            loan.BookTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            loan.Barcode?.toLowerCase().includes(searchQuery.toLowerCase());
+            loan.memberName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            loan.bookTitle?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter
-            ? loan.Status === statusFilter
+            ? loan.status === statusFilter
             : true;
         return matchesSearch && matchesStatus;
     });
@@ -72,55 +109,42 @@ export function LoansManagement() {
         return due < today;
     };
 
-    const handleBorrow = () => {
-        const member = activeMembers.find(
-            (m) => m.MemberId === borrowForm.MemberId
-        );
-        const copy = availableCopies.find(
-            (c) => c.CopyId === borrowForm.CopyId
-        );
-        const staff = mockStaff.find((s) => s.StaffId === borrowForm.StaffId);
-
-        if (member && copy && staff && borrowForm.DueDate) {
-            const newLoan = {
-                LoanId: loans.length + 1,
-                MemberId: member.MemberId,
-                MemberName: member.FullName,
-                CopyId: copy.CopyId,
-                BookTitle: copy.BookTitle,
-                Barcode: copy.Barcode,
-                StaffId: staff.StaffId,
-                StaffName: staff.FullName,
-                LoanDate: borrowForm.LoanDate,
-                DueDate: borrowForm.DueDate,
-                RenewalCount: 0,
-                Status: "Active",
-                ReturnDate: null,
-            };
-            setLoans([...loans, newLoan]);
-            setIsBorrowDialogOpen(false);
+    const handleBorrow = async () => {
+        try {
+            setLoading(true);
+            await createLoan(borrowForm);
+            await loadLoans();
             setBorrowForm({
-                MemberId: "",
-                CopyId: "",
-                StaffId: "",
-                LoanDate: new Date().toISOString().split("T")[0],
-                DueDate: "",
+                memberId: "",
+                copyId: "",
+                loanDate: new Date().toISOString().split("T")[0],
+                dueDate: "",
+                notes: "",
             });
+            alert("Book borrowed successfully!");
+        } catch (error) {
+            console.error("Error borrowing book:", error);
+            alert("Error borrowing book. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleReturn = (loanId) => {
-        setLoans(
-            loans.map((loan) =>
-                loan.LoanId === loanId
-                    ? {
-                          ...loan,
-                          ReturnDate: new Date().toISOString().split("T")[0],
-                          Status: "Returned",
-                      }
-                    : loan
-            )
-        );
+    const handleReturn = async (loanId) => {
+        try {
+            setLoading(true);
+            await updateLoan(loanId, {
+                returnDate: new Date().toISOString(),
+                status: "Returned",
+            });
+            await loadLoans();
+            alert("Book returned successfully!");
+        } catch (error) {
+            console.error("Error returning book:", error);
+            alert("Error returning book. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -144,7 +168,7 @@ export function LoansManagement() {
                             <div className="flex gap-2 items-center">
                                 <Search className="w-5 h-5 text-gray-500" />
                                 <Input
-                                    placeholder="Search by member, book, barcode..."
+                                    placeholder="Search by member, book..."
                                     value={searchQuery}
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
@@ -159,6 +183,7 @@ export function LoansManagement() {
                                         <SelectValue placeholder="Filter by status" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="">All</SelectItem>
                                         {statuses.map((status) => (
                                             <SelectItem
                                                 key={status}
@@ -171,88 +196,98 @@ export function LoansManagement() {
                                 </Select>
                             </div>
 
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Loan ID</TableHead>
-                                        <TableHead>Member</TableHead>
-                                        <TableHead>Book / Copy</TableHead>
-                                        <TableHead>Loan Date</TableHead>
-                                        <TableHead>Due Date</TableHead>
-                                        <TableHead>Return Date</TableHead>
-                                        <TableHead>Staff</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredLoans.map((loan) => {
-                                        const overdue =
-                                            isOverdue(loan.DueDate) &&
-                                            loan.Status === "Active";
-                                        return (
-                                            <TableRow key={loan.LoanId}>
-                                                <TableCell>
-                                                    #{loan.LoanId}
-                                                </TableCell>
-                                                <TableCell className="font-medium">
-                                                    {loan.MemberName}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span>
-                                                            {loan.BookTitle}
-                                                        </span>
-                                                        <span className="text-sm text-gray-500">
-                                                            {loan.Barcode}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {loan.LoanDate}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {loan.DueDate}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {loan.ReturnDate || "-"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {loan.StaffName}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {overdue ? (
-                                                        <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
-                                                            <AlertTriangle className="w-4 h-4" />{" "}
-                                                            Overdue
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="outline">
-                                                            {loan.Status}
-                                                        </Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {loan.Status ===
-                                                        "Active" && (
-                                                        <Button
-                                                            onClick={() =>
-                                                                handleReturn(
-                                                                    loan.LoanId
-                                                                )
-                                                            }
-                                                            size="sm"
-                                                        >
-                                                            <CheckCircle className="w-4 h-4 mr-1" />
-                                                            Return
-                                                        </Button>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                            {loading ? (
+                                <div className="text-center py-8">
+                                    Loading...
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Loan ID</TableHead>
+                                            <TableHead>Member</TableHead>
+                                            <TableHead>Book</TableHead>
+                                            <TableHead>Loan Date</TableHead>
+                                            <TableHead>Due Date</TableHead>
+                                            <TableHead>Return Date</TableHead>
+                                            <TableHead>Staff</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredLoans.map((loan) => {
+                                            const overdue =
+                                                isOverdue(loan.dueDate) &&
+                                                loan.status === "Active";
+                                            return (
+                                                <TableRow key={loan.loanId}>
+                                                    <TableCell>
+                                                        #{loan.loanId}
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {loan.memberName}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {loan.bookTitle}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(
+                                                            loan.loanDate
+                                                        ).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(
+                                                            loan.dueDate
+                                                        ).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {loan.returnDate
+                                                            ? new Date(
+                                                                  loan.returnDate
+                                                              ).toLocaleDateString()
+                                                            : "-"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {loan.staffName || "-"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {overdue ? (
+                                                            <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
+                                                                <AlertTriangle className="w-4 h-4" />
+                                                                Overdue
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline">
+                                                                {loan.status}
+                                                            </Badge>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {loan.status ===
+                                                            "Active" && (
+                                                            <Button
+                                                                onClick={() =>
+                                                                    handleReturn(
+                                                                        loan.loanId
+                                                                    )
+                                                                }
+                                                                size="sm"
+                                                                disabled={
+                                                                    loading
+                                                                }
+                                                            >
+                                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                                Return
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -275,11 +310,11 @@ export function LoansManagement() {
                                 <div>
                                     <Label htmlFor="member">Member</Label>
                                     <Select
-                                        value={borrowForm.MemberId}
+                                        value={borrowForm.memberId}
                                         onValueChange={(val) =>
                                             setBorrowForm({
                                                 ...borrowForm,
-                                                MemberId: val,
+                                                memberId: parseInt(val),
                                             })
                                         }
                                     >
@@ -287,13 +322,13 @@ export function LoansManagement() {
                                             <SelectValue placeholder="Select member" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {activeMembers.map((member) => (
+                                            {members.map((member) => (
                                                 <SelectItem
-                                                    key={member.MemberId}
-                                                    value={member.MemberId}
+                                                    key={member.memberId}
+                                                    value={member.memberId.toString()}
                                                 >
-                                                    {member.FullName} (
-                                                    {member.MemberCode})
+                                                    {member.fullName} (
+                                                    {member.memberCode})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -303,11 +338,11 @@ export function LoansManagement() {
                                 <div>
                                     <Label htmlFor="copy">Book Copy</Label>
                                     <Select
-                                        value={borrowForm.CopyId}
+                                        value={borrowForm.copyId}
                                         onValueChange={(val) =>
                                             setBorrowForm({
                                                 ...borrowForm,
-                                                CopyId: val,
+                                                copyId: parseInt(val),
                                             })
                                         }
                                     >
@@ -315,40 +350,12 @@ export function LoansManagement() {
                                             <SelectValue placeholder="Select copy" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {availableCopies.map((copy) => (
+                                            {bookCopies.map((copy) => (
                                                 <SelectItem
-                                                    key={copy.CopyId}
-                                                    value={copy.CopyId}
+                                                    key={copy.copyId}
+                                                    value={copy.copyId.toString()}
                                                 >
-                                                    {copy.BookTitle} (
-                                                    {copy.Barcode})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="staff">Staff</Label>
-                                    <Select
-                                        value={borrowForm.StaffId}
-                                        onValueChange={(val) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                StaffId: val,
-                                            })
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select staff" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {mockStaff.map((s) => (
-                                                <SelectItem
-                                                    key={s.StaffId}
-                                                    value={s.StaffId}
-                                                >
-                                                    {s.FullName}
+                                                    {copy.title}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -360,11 +367,11 @@ export function LoansManagement() {
                                     <Input
                                         id="loanDate"
                                         type="date"
-                                        value={borrowForm.LoanDate}
+                                        value={borrowForm.loanDate}
                                         onChange={(e) =>
                                             setBorrowForm({
                                                 ...borrowForm,
-                                                LoanDate: e.target.value,
+                                                loanDate: e.target.value,
                                             })
                                         }
                                     />
@@ -375,11 +382,26 @@ export function LoansManagement() {
                                     <Input
                                         id="dueDate"
                                         type="date"
-                                        value={borrowForm.DueDate}
+                                        value={borrowForm.dueDate}
                                         onChange={(e) =>
                                             setBorrowForm({
                                                 ...borrowForm,
-                                                DueDate: e.target.value,
+                                                dueDate: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+
+                                <div className="col-span-2">
+                                    <Label htmlFor="notes">Notes</Label>
+                                    <Input
+                                        id="notes"
+                                        placeholder="Optional notes"
+                                        value={borrowForm.notes}
+                                        onChange={(e) =>
+                                            setBorrowForm({
+                                                ...borrowForm,
+                                                notes: e.target.value,
                                             })
                                         }
                                     />
@@ -387,9 +409,19 @@ export function LoansManagement() {
                             </div>
 
                             <div>
-                                <Button onClick={handleBorrow}>
+                                <Button
+                                    onClick={handleBorrow}
+                                    disabled={
+                                        loading ||
+                                        !borrowForm.memberId ||
+                                        !borrowForm.copyId ||
+                                        !borrowForm.dueDate
+                                    }
+                                >
                                     <BookMarked className="w-4 h-4 mr-1" />
-                                    Confirm Borrow
+                                    {loading
+                                        ? "Processing..."
+                                        : "Confirm Borrow"}
                                 </Button>
                             </div>
                         </CardContent>

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using backend.DTOs.Loan;
 using backend.Services.Loan;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,10 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<LoanDto>> PostLoan(CreateLoanDto createLoanDto)
         {
-            var newLoanDto = await _loanService.CreateLoanAsync(createLoanDto);
+            var accountId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
+            var newLoanDto = await _loanService.CreateLoanAsync(accountId,createLoanDto);
             return CreatedAtAction(nameof(GetLoan), new { id = newLoanDto.LoanId }, newLoanDto);
         }
 
