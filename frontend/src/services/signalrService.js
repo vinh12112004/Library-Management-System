@@ -19,7 +19,7 @@ const ensureConnected = async () => {
 
 export const startConnection = async (token) => {
     connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7228/chatHub", {
+        .withUrl("https://pablo11.duckdns.org/chatHub", {
             accessTokenFactory: () => token,
         })
         .withAutomaticReconnect()

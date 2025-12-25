@@ -24,15 +24,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:3000")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        });
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://pablo11.duckdns.org"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
+
 
 // ====================================
 // CONFIGURE SERVICES
