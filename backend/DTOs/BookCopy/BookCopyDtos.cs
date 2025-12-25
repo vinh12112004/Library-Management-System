@@ -9,6 +9,7 @@ namespace backend.DTOs.BookCopy
         public int CopyId { get; set; }
         public int BookId { get; set; }
         public string Barcode { get; set; }
+        public string BookTitle { get; set; }
         public CopyStatus Status { get; set; }
         public string Location { get; set; }
         public DateTime? AcquisitionDate { get; set; }

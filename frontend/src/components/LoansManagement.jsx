@@ -34,7 +34,7 @@ import {
     getLoansByMemberId,
 } from "../services/loanService";
 import { getMembers } from "../services/memberService";
-import { getBooks } from "../services/bookService";
+import { getBookCopies } from "../services/bookCopyService";
 
 export function LoansManagement() {
     const [loans, setLoans] = useState([]);
@@ -42,12 +42,20 @@ export function LoansManagement() {
     const [bookCopies, setBookCopies] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    // Calculate default due date (1 month from now)
+    const getDefaultDueDate = () => {
+        const date = new Date();
+        date.setMonth(date.getMonth() + 1);
+        return date.toISOString().split("T")[0];
+    };
+
     const [borrowForm, setBorrowForm] = useState({
         memberId: "",
         copyId: "",
         loanDate: new Date().toISOString().split("T")[0],
-        dueDate: "",
+        dueDate: getDefaultDueDate(),
         notes: "",
     });
 
@@ -75,19 +83,28 @@ export function LoansManagement() {
     const loadMembers = async () => {
         try {
             const data = await getMembers();
-            setMembers(data.filter((m) => m.status === "Active"));
+            setMembers(
+                Array.isArray(data)
+                    ? data.filter((m) => m.status === "Active")
+                    : []
+            );
         } catch (error) {
             console.error("Error loading members:", error);
+            setMembers([]);
         }
     };
 
     const loadBookCopies = async () => {
         try {
-            const data = await getBooks({ pageNumber: 1, pageSize: 100 });
-            // Giả sử API trả về books với copies
-            setBookCopies(data.items || data);
+            const data = await getBookCopies();
+            setBookCopies(
+                Array.isArray(data)
+                    ? data.filter((copy) => copy.status === "Available")
+                    : []
+            );
         } catch (error) {
             console.error("Error loading book copies:", error);
+            setBookCopies([]);
         }
     };
 
@@ -97,9 +114,10 @@ export function LoansManagement() {
                 ?.toLowerCase()
                 .includes(searchQuery.toLowerCase()) ||
             loan.bookTitle?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter
-            ? loan.status === statusFilter
-            : true;
+        const matchesStatus =
+            statusFilter && statusFilter !== "all"
+                ? loan.status === statusFilter
+                : true;
         return matchesSearch && matchesStatus;
     });
 
@@ -118,7 +136,7 @@ export function LoansManagement() {
                 memberId: "",
                 copyId: "",
                 loanDate: new Date().toISOString().split("T")[0],
-                dueDate: "",
+                dueDate: getDefaultDueDate(),
                 notes: "",
             });
             alert("Book borrowed successfully!");
@@ -183,7 +201,7 @@ export function LoansManagement() {
                                         <SelectValue placeholder="Filter by status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">All</SelectItem>
+                                        <SelectItem value="all">All</SelectItem>
                                         {statuses.map((status) => (
                                             <SelectItem
                                                 key={status}
@@ -308,9 +326,13 @@ export function LoansManagement() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="member">Member</Label>
+                                    <Label htmlFor="member">Member *</Label>
                                     <Select
-                                        value={borrowForm.memberId}
+                                        value={
+                                            borrowForm.memberId
+                                                ? borrowForm.memberId.toString()
+                                                : ""
+                                        }
                                         onValueChange={(val) =>
                                             setBorrowForm({
                                                 ...borrowForm,
@@ -336,9 +358,13 @@ export function LoansManagement() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="copy">Book Copy</Label>
+                                    <Label htmlFor="copy">Book Copy *</Label>
                                     <Select
-                                        value={borrowForm.copyId}
+                                        value={
+                                            borrowForm.copyId
+                                                ? borrowForm.copyId.toString()
+                                                : ""
+                                        }
                                         onValueChange={(val) =>
                                             setBorrowForm({
                                                 ...borrowForm,
@@ -347,7 +373,7 @@ export function LoansManagement() {
                                         }
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select copy" />
+                                            <SelectValue placeholder="Select book copy" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {bookCopies.map((copy) => (
@@ -355,7 +381,8 @@ export function LoansManagement() {
                                                     key={copy.copyId}
                                                     value={copy.copyId.toString()}
                                                 >
-                                                    {copy.title}
+                                                    {copy.bookTitle} - Copy #
+                                                    {copy.copyNumber}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -363,7 +390,9 @@ export function LoansManagement() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="loanDate">Loan Date</Label>
+                                    <Label htmlFor="loanDate">
+                                        Loan Date *
+                                    </Label>
                                     <Input
                                         id="loanDate"
                                         type="date"
@@ -378,7 +407,9 @@ export function LoansManagement() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="dueDate">Due Date</Label>
+                                    <Label htmlFor="dueDate">
+                                        Due Date * (Default: 1 month)
+                                    </Label>
                                     <Input
                                         id="dueDate"
                                         type="date"

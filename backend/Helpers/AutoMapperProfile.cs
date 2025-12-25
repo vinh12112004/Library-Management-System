@@ -107,6 +107,14 @@ namespace backend.Helpers
 
                 CreateMap<CreateLoanDto, Loan>();
                 CreateMap<UpdateLoanDto, Loan>();
+                
+                // bookcopy
+                CreateMap<CreateBookCopyDto, BookCopy>();
+                CreateMap<UpdateBookCopyDto, BookCopy>();
+                CreateMap<BookCopy, BookCopyDto>()
+                    .ForMember(dest => dest.BookTitle,
+                        opt => opt.MapFrom(src => src.Book != null ? src.Book.Title : null));
+
         }
     }
 }
