@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -30,7 +31,8 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { hasRole } from "../utils/permission";
 
-export function AuthorsManagement({ onNavigate }) {
+export function AuthorsManagement() {
+    const navigate = useNavigate();
     const { roles } = useAuth();
 
     const canView = hasRole(roles, [
@@ -202,9 +204,8 @@ export function AuthorsManagement({ onNavigate }) {
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={() =>
-                                                        onNavigate(
-                                                            "author-detail",
-                                                            author.authorId
+                                                        navigate(
+                                                            `/authors/${author.authorId}`
                                                         )
                                                     }
                                                 >

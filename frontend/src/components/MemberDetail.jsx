@@ -1,3 +1,4 @@
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -19,7 +20,10 @@ import {
     mockReviews,
 } from "../data/mockData";
 
-export function MemberDetail({ memberId, onBack }) {
+export function MemberDetail() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const memberId = id;
     const member = mockMembers.find((m) => m.MemberId === memberId);
     const memberLoans = mockLoans.filter((l) => l.MemberId === memberId);
     const memberReservations = mockReservations.filter(
@@ -47,7 +51,7 @@ export function MemberDetail({ memberId, onBack }) {
         <div className="space-y-6 p-4">
             {/* Back Button + Header */}
             <div className="flex items-center gap-4">
-                <Button variant="outline" onClick={onBack}>
+                <Button variant="outline" onClick={() => navigate("/members")}>
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>

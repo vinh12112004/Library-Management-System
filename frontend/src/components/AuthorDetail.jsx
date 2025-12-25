@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"; // Thêm useEffect và useState
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -13,7 +14,10 @@ import { ArrowLeft, Loader2 } from "lucide-react"; // Import Loader2 cho trạng
 
 import { getAuthorById, getBooksByAuthorId } from "../services/authorService";
 
-export function AuthorDetail({ authorId, onBack }) {
+export function AuthorDetail() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const authorId = id;
     const [author, setAuthor] = useState(null);
     const [authorBooks, setAuthorBooks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -58,7 +62,7 @@ export function AuthorDetail({ authorId, onBack }) {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={onBack}>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/authors")}>
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
