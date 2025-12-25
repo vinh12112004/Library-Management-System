@@ -73,22 +73,26 @@ export function BooksGridView({ books, onView, onEdit, onDelete }) {
                                 >
                                     <Eye className="w-3 h-3" />
                                 </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex-1 h-6 px-2"
-                                    onClick={() => onEdit(book)}
-                                >
-                                    <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="flex-1 h-6 px-2 text-destructive hover:bg-destructive/10"
-                                    onClick={() => onDelete(book.bookId)}
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </Button>
+                                {onEdit && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex-1 h-6 px-2"
+                                        onClick={() => onEdit(book)}
+                                    >
+                                        <Edit className="w-3 h-3" />
+                                    </Button>
+                                )}
+                                {onDelete && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="flex-1 h-6 px-2 text-destructive hover:bg-destructive/10"
+                                        onClick={() => onDelete(book.bookId)}
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
