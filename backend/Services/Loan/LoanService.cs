@@ -41,8 +41,12 @@ namespace backend.Services.Loan
 
         public async Task<LoanDto> CreateLoanAsync(int accid,CreateLoanDto createLoanDto)
         {
-            int staffid = await _staffRepository.GetStaffIdByAccountIdAsync(accid);
-            createLoanDto.StaffId = staffid;
+            var staffId = await _staffRepository.GetStaffIdByAccountIdAsync(accid);
+
+            if (staffId == null)
+                throw new Exception($"No staff linked with accountId = {accid}");
+
+            createLoanDto.StaffId = staffId;
             var loanModel = _mapper.Map<Models.Loan>(createLoanDto);
             var newLoan = await _loanRepository.AddAsync(loanModel);
             return _mapper.Map<LoanDto>(newLoan);

@@ -52,11 +52,15 @@ public class StaffRepository : IStaffRepository
         await _context.SaveChangesAsync();
         return true;
     }
-    public async Task<int> GetStaffIdByAccountIdAsync(int accountId)
+    public async Task<int?> GetStaffIdByAccountIdAsync(int accountId)
     {
         var staff = await _context.Staffs
             .FirstOrDefaultAsync(s => s.AccountId == accountId);
-        
+
+        if (staff == null)
+            return null;
+
         return staff.StaffId;
     }
+
 }
