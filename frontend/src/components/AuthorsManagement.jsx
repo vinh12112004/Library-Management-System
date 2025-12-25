@@ -58,6 +58,13 @@ export function AuthorsManagement() {
     ]);
     const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
 
+    // Debug: Check roles
+    useEffect(() => {
+        console.log("AuthorsManagement - Current roles:", roles);
+        console.log("AuthorsManagement - canManage:", canManage);
+    }, [roles, canManage]);
+    //DEBUG DEBUG DEBUG
+
     const [authors, setAuthors] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -212,8 +219,8 @@ export function AuthorsManagement() {
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Authors Management</h1>
-                    <p className="text-gray-600 mt-1">Manage and organize authors</p>
+                    <h1 className="text-3xl font-bold"> {canManage ? "Authors Management" : "Authors Library"} </h1>
+                    <p className="text-gray-600 mt-1">{canManage ? "Manage and organize authors" : "Browse and explore our authors collection."}</p>
                 </div>
 
                 {canManage && (

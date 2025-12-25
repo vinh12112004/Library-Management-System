@@ -50,9 +50,21 @@ import { getCategories } from "../services/categoryService";
 import { toast } from "sonner";
 import { BooksTableView } from "./book/BooksTableView";
 import { BooksGridView } from "./book/BooksGridView";
+import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/permission";
 
 export function BooksManagement() {
     const navigate = useNavigate();
+    const { roles } = useAuth();
+
+    const canView = hasRole(roles, [
+        "Reader",
+        "Admin",
+        "Librarian",
+        "Assistant",
+    ]);
+    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const isReader = hasRole(roles, ["Reader"]);
     // ----------------------------------------
     // STATES
     // ----------------------------------------
@@ -64,7 +76,7 @@ export function BooksManagement() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingBook, setEditingBook] = useState(null);
     const [coverImageFile, setCoverImageFile] = useState(null);
-    const [viewMode, setViewMode] = useState("table");
+    const [viewMode, setViewMode] = useState(isReader ? "grid" : "table");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
@@ -352,9 +364,13 @@ export function BooksManagement() {
             {/* Page Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold">Books Management</h1>
+                    <h1 className="text-2xl font-bold">
+                        {canManage ? "Books Management" : "Books Library"}
+                    </h1>
                     <p className="text-muted-foreground">
-                        Manage all books in the library.
+                        {canManage
+                            ? "Manage all books in the library."
+                            : "Browse and explore our book collection."}
                     </p>
                 </div>
                 <div className="flex gap-2">
@@ -380,10 +396,12 @@ export function BooksManagement() {
                         </Button>
                     </div>
 
-                    <Button onClick={openAddDialog}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Book
-                    </Button>
+                    {canManage && (
+                        <Button onClick={openAddDialog}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Book
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -436,9 +454,8 @@ export function BooksManagement() {
                         <BooksTableView
                             books={filteredBooks}
                             onView={(id) => navigate(`/books/${id}`)}
-
-                            onEdit={openEditDialog}
-                            onDelete={handleDeleteBook}
+                            onEdit={canManage ? openEditDialog : undefined}
+                            onDelete={canManage ? handleDeleteBook : undefined}
                         />
                     </CardContent>
                 </Card>
@@ -446,9 +463,8 @@ export function BooksManagement() {
                 <BooksGridView
                     books={filteredBooks}
                     onView={(id) => navigate(`/books/${id}`)}
-
-                    onEdit={openEditDialog}
-                    onDelete={handleDeleteBook}
+                    onEdit={canManage ? openEditDialog : undefined}
+                    onDelete={canManage ? handleDeleteBook : undefined}
                 />
             )}
 

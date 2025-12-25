@@ -48,10 +48,10 @@ export function Layout({ children, userType }) {
     // Tạm thời bỏ filter để xem tất cả items
     const filteredNavItems = navItems.filter((item) => {
         if (actualUserType === "reader") {
-            // Reader chỉ cần Chat
-            return item.id === "chat";
+            // Reader can see: Books, Authors, Categories, Chat
+            return ["books", "authors", "categories", "chat"].includes(item.id);
         }
-        return true; // staff thấy tất cả
+        return true; // staff sees everything
     });
 
     return (
