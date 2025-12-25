@@ -78,51 +78,122 @@ export function BookDetail({ bookId, onBack }) {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>
-                <h1 className="text-2xl font-semibold">
-                    Chi tiết sách
-                </h1>
+                <h1 className="text-2xl font-semibold">Chi tiết sách</h1>
             </div>
 
             {/* Content */}
-            <Card className="max-w-3xl">
-                <CardContent className="p-6 space-y-4">
-                    <div>
-                        <span className="font-medium">Tiêu đề:</span>
-                        <p>{book.title}</p>
-                    </div>
+            <Card className="max-w-5xl mx-auto">
+                <CardContent className="p-8">
+                    <div className="flex flex-col md:flex-row gap-8">
+                        
+                        {/* LEFT: Cover Image */}
+                        <div className="flex-shrink-0 flex justify-center md:justify-start" style = {{paddingTop: "20px"}}>
+                            {book.coverImageUrl ? (
+                                <img
+                                    src={book.coverImageUrl}
+                                    alt={book.title}
+                                    className="w-40 h-auto rounded-lg shadow-md object-cover"
+                                    style={{ maxHeight: "354px" }}
+                                    onError={(e) => (e.target.style.display = "none")}
+                                />
+                            ) : (
+                                <div className="w-40 h-56 bg-muted flex items-center justify-center rounded-lg text-sm text-muted-foreground">
+                                    No Image
+                                </div>
+                            )}
+                        </div>
 
-                    <div>
-                        <span className="font-medium">ISBN:</span>
-                        <p>{book.isbn}</p>
-                    </div>
+                        {/* RIGHT: Book Info */}
+                        <div className="flex-1 space-y-6" style = {{paddingLeft: "20px"}}>
+                            {/* Tiêu đề */}
+                           <div className="text-center">
+    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-primary mb-2" style = {{fontSize: "24px"}}>
+        {book.title}
+    </h2>
+    <p className="text-sm text-muted-foreground">
+        ISBN: {book.isbn}
+    </p>
+</div>
 
-                    <div>
-                        <span className="font-medium">Thể loại:</span>
-                        <p>{book.categoryName}</p>
-                    </div>
 
-                    <div>
-                        <span className="font-medium">Tác giả:</span>
-                        <p>
-                            {book.authors?.length > 0
-                                ? book.authors.map(a => a.name).join(", ")
-                                : "Không có"}
-                        </p>
-                    </div>
+                            {/* Divider */}
+                            <div className="border-t pt-5 space-y-4">
+                                {/* Tác giả */}
+                                <div className="flex gap-3">
+                                    <span className="font-medium min-w-32">Tác giả:</span>
+                                    <p className="flex-1 leading-relaxed">
+                                        {book.authors && Array.isArray(book.authors) && book.authors.length > 0
+                                            ? (typeof book.authors[0] === "string"
+                                                ? book.authors.join(", ")
+                                                : book.authors.map(a => a.name || a.fullName || a).join(", "))
+                                            : book.authorNames || "Không có"}
+                                    </p>
+                                </div>
 
-                    <div>
-                        <span className="font-medium">Số lượng:</span>
-                        <p>{book.quantity}</p>
-                    </div>
+                                {/* Thể loại */}
+                                <div className="flex gap-3">
+                                    <span className="font-medium min-w-32">Thể loại:</span>
+                                    <p className="flex-1 leading-relaxed">
+                                        {book.categories && Array.isArray(book.categories) && book.categories.length > 0
+                                            ? (typeof book.categories[0] === "string"
+                                                ? book.categories.join(", ")
+                                                : book.categories.map(c => c.name || c).join(", "))
+                                            : book.categoryName || "Không có"}
+                                    </p>
+                                </div>
 
-                    <div>
-                        <span className="font-medium">Mô tả:</span>
-                        <p className="text-sm text-muted-foreground">
-                            {book.description || "Không có mô tả"}
-                        </p>
+                                {/* Nhà xuất bản */}
+                                <div className="flex gap-3">
+                                    <span className="font-medium min-w-32">Nhà xuất bản:</span>
+                                    <p className="flex-1 leading-relaxed">{book.publisherName || "Không có"}</p>
+                                </div>
+                            </div>
+
+                            {/* Thông tin chi tiết - Grid 2 cột */}
+                            <div className="border-t pt-5">
+                                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                                    <div className="flex gap-3">
+                                        <span className="font-medium">Năm XB:</span>
+                                        <p>{book.publicationYear || "N/A"}</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="font-medium">Phiên bản:</span>
+                                        <p>{book.edition || "N/A"}</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="font-medium">Ngôn ngữ:</span>
+                                        <p>{book.language || "N/A"}</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="font-medium">Số trang:</span>
+                                        <p>{book.pages || "N/A"}</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="font-medium">Số lượng:</span>
+                                        <p>{book.quantity ?? book.totalCopies ?? 0}</p>
+                                    </div>
+                                    {(book.availableCopies !== undefined || book.availableQuantity !== undefined) && (
+                                        <div className="flex gap-3">
+                                            <span className="font-medium">Còn lại:</span>
+                                            <p>{book.availableCopies ?? book.availableQuantity ?? 0}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Mô tả */}
+                            {book.description && (
+                                <div className="border-t pt-5">
+                                    <span className="font-medium block mb-3">Mô tả:</span>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                                        {book.description}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
         </div>
     );
-}
+}   
