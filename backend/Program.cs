@@ -204,7 +204,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseRouting();
 app.UseCors("AllowReact");
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication(); // Add this before UseAuthorization
 app.UseAuthorization();
