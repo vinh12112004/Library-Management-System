@@ -66,7 +66,7 @@ namespace backend.Services.Storage
         }
         public string GetBaseUrl()
         {
-            return $"http://{_settings.Endpoint}/{_settings.Bucket}";
+            return $"https://{_settings.PublicBaseUrl}/{_settings.Bucket}";
         }
 
     }
