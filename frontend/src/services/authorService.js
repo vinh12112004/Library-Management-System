@@ -1,7 +1,19 @@
 import apiClient from "./apiClient";
 
-export const getAuthors = async () => {
-    const response = await apiClient.get("/Author");
+// Lấy authors: hỗ trợ gọi kiểu (pageNumber, pageSize) hoặc object { pageNumber, pageSize, ... }
+export const getAuthors = async (pageNumberOrOptions = 1, pageSize = 10) => {
+    let params;
+
+    if (
+        typeof pageNumberOrOptions === "object" &&
+        pageNumberOrOptions !== null
+    ) {
+        params = { pageNumber: 1, pageSize: 10, ...pageNumberOrOptions };
+    } else {
+        params = { pageNumber: pageNumberOrOptions, pageSize };
+    }
+
+    const response = await apiClient.get("/Author", { params });
     return response.data;
 };
 

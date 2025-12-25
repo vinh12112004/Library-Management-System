@@ -12,6 +12,13 @@ import {
     TableRow,
 } from "./ui/table";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "./ui/select";
+import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -55,8 +62,31 @@ export function CategoriesManagement() {
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories();
-            setCategories(response?.items || response || []);
+            const response = await getCategories({
+                pageNumber: pagination.pageNumber,
+                pageSize: pagination.pageSize,
+            });
+
+            const items = response?.items || response || [];
+            const nextPageNumber = response?.pageNumber ?? pagination.pageNumber;
+            const nextPageSize = response?.pageSize ?? pagination.pageSize;
+            const totalCount = response?.totalCount ?? items.length;
+            const totalPages =
+                response?.totalPages ??
+                Math.max(1, Math.ceil(totalCount / nextPageSize));
+
+            setCategories(items);
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: nextPageNumber,
+                pageSize: nextPageSize,
+                totalCount,
+                totalPages,
+                hasPreviousPage:
+                    response?.hasPreviousPage ?? nextPageNumber > 1,
+                hasNextPage:
+                    response?.hasNextPage ?? nextPageNumber < totalPages,
+            }));
         } catch (err) {
             console.error("Error fetching categories:", err);
             toast.error("Failed to fetch categories");
@@ -139,6 +169,15 @@ export function CategoriesManagement() {
         }
     };
 
+    const handlePageSizeChange = (value) => {
+        const nextSize = Number(value) || 10;
+        setPagination((prev) => ({
+            ...prev,
+            pageSize: nextSize,
+            pageNumber: 1,
+        }));
+    };
+
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
@@ -218,29 +257,53 @@ export function CategoriesManagement() {
                             Showing {categories.length} of{" "}
                             {pagination.totalCount} categories
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handlePreviousPage}
-                                disabled={!pagination.hasPreviousPage}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Previous
-                            </Button>
-                            <div className="text-sm">
-                                Page {pagination.pageNumber} of{" "}
-                                {pagination.totalPages}
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <span>Rows per page</span>
+                                <Select
+                                    value={String(pagination.pageSize)}
+                                    onValueChange={handlePageSizeChange}
+                                >
+                                    <SelectTrigger className="h-9 w-24">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[5, 10, 20, 50].map((size) => (
+                                            <SelectItem
+                                                key={size}
+                                                value={String(size)}
+                                            >
+                                                {size}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleNextPage}
-                                disabled={!pagination.hasNextPage}
-                            >
-                                Next
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handlePreviousPage}
+                                    disabled={!pagination.hasPreviousPage}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Previous
+                                </Button>
+                                <div className="text-sm">
+                                    Page {pagination.pageNumber} of{" "}
+                                    {pagination.totalPages}
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleNextPage}
+                                    disabled={!pagination.hasNextPage}
+                                >
+                                    Next
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
