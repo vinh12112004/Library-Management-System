@@ -1,0 +1,115 @@
+/* Container tổng */
+.chat-reader-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 7.5rem);
+    max-height: calc(100vh - 7.5rem);
+    width: 100%;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Header */
+.chat-reader-header {
+    padding: 16px;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* Area chứa message */
+.chat-reader-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #f9fafb;
+}
+
+/* Wrapper mỗi message */
+.chat-reader-messages .chat-message-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Reader message - bên PHẢI (xanh) */
+.chat-reader-messages .chat-message-wrapper.reader {
+    align-items: flex-end;
+}
+
+/* Staff message - bên TRÁI (xám) */
+.chat-reader-messages .chat-message-wrapper.staff {
+    align-items: flex-start;
+}
+
+/* Nội dung message */
+.chat-reader-messages .chat-message {
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 70%;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+/* Màu background */
+.chat-reader-messages .chat-message-wrapper.reader .chat-message {
+    background-color: #3b82f6;
+    color: #fff;
+    border-top-right-radius: 0;
+}
+
+.chat-reader-messages .chat-message-wrapper.staff .chat-message {
+    background-color: #e5e7eb;
+    color: #111827;
+    border-top-left-radius: 0;
+}
+
+/* Thời gian message */
+.chat-reader-messages .chat-message-time {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* Input area */
+.chat-reader-input {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #fff;
+    gap: 8px;
+}
+
+.chat-reader-input input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    outline: none;
+}
+
+.chat-reader-input input:focus {
+    border-color: #3b82f6;
+}
+
+.chat-reader-input button {
+    background-color: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 0 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-reader-input button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}

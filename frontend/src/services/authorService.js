@@ -29,3 +29,8 @@ export const deleteAuthor = async (id) => {
     const response = await apiClient.delete(`/Author/${id}`);
     return response.data;
 };
+
+export const getBooksByAuthorId = async (authorId) => {
+    const response = await apiClient.get(`/Author/${authorId}/books`);
+    return response.data;
+};

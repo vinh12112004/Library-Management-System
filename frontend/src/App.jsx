@@ -16,7 +16,8 @@ import { FinesManagement } from "./components/FinesManagement";
 import { ReviewsManagement } from "./components/ReviewsManagement";
 import { ActivityLogsManagement } from "./components/ActivityLogsManagement";
 import { Login } from "./components/Login";
-
+import { ChatSupport } from "./components/ChatSupport";
+import { ChatReader } from "./components/ChatReader";
 export default function App() {
     const [currentPage, setCurrentPage] = useState("dashboard");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -26,6 +27,7 @@ export default function App() {
     const handleLogin = (type) => {
         setUserType(type);
         setIsLoggedIn(true);
+        setCurrentPage("dashboard");
     };
 
     const handleNavigate = (page, id) => {
@@ -95,6 +97,9 @@ export default function App() {
                 return <ReviewsManagement />;
             case "activity-logs":
                 return <ActivityLogsManagement />;
+            case "chat":
+                return userType === "staff" ? <ChatSupport /> : <ChatReader />;
+
             default:
                 return <Dashboard onNavigate={handleNavigate} />;
         }

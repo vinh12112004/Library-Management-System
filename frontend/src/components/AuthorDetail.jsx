@@ -11,7 +11,7 @@ import {
 } from "./ui/table";
 import { ArrowLeft, Loader2 } from "lucide-react"; // Import Loader2 cho trạng thái loading
 
-import { getAuthorById } from "../services/authorService";
+import { getAuthorById, getBooksByAuthorId } from "../services/authorService";
 
 export function AuthorDetail({ authorId, onBack }) {
     const [author, setAuthor] = useState(null);
@@ -24,30 +24,18 @@ export function AuthorDetail({ authorId, onBack }) {
         setLoading(true);
         setError(null);
 
-        // Fetch Author
-        getAuthorById(authorId)
-            .then((data) => {
-                // API trả về tên thuộc tính lowercase: authorId, fullName, biography...
-                // Cần đảm bảo sử dụng tên thuộc tính chuẩn trong render.
-                setAuthor(data);
+        Promise.all([getAuthorById(authorId), getBooksByAuthorId(authorId)])
+            .then(([authorData, booksData]) => {
+                setAuthor(authorData);
+                setAuthorBooks(booksData);
                 setLoading(false);
             })
             .catch((err) => {
-                console.error("Error fetching author details:", err);
+                console.error("Error fetching author detail:", err);
                 setError("Failed to load author details.");
                 setLoading(false);
             });
-
-        // TẠM THỜI SỬ DỤNG MOCK DATA CHO SÁCH (cho đến khi có API service)
-        // Nếu bạn có một API:
-        /*
-        getBooksByAuthorId(authorId)
-            .then((books) => {
-                setAuthorBooks(books);
-            })
-            .catch((err) => console.error("Error fetching author books:", err));
-        */
-    }, [authorId]); // Fetch lại khi authorId thay đổi
+    }, [authorId]);
 
     // Xử lý trạng thái tải (Loading State)
     if (loading) {
@@ -131,29 +119,34 @@ export function AuthorDetail({ authorId, onBack }) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {/* LƯU Ý: Nếu dùng API thật cho sách, bạn cũng cần 
-                                chỉnh lại tên thuộc tính (Title -> title, 
-                                PublicationYear -> publicationYear, v.v.) 
-                                tương ứng với response của API sách. 
-                                Hiện tại tôi giữ nguyên tên thuộc tính mock Books.
-                                Tuy nhiên, nếu bạn muốn dùng mockBooks, bạn cần import lại. */}
-                            {authorBooks.map((book) => (
-                                <TableRow key={book.BookId}>
-                                    <TableCell>#{book.BookId}</TableCell>
-                                    <TableCell className="font-medium">
-                                        {book.Title}
-                                    </TableCell>
-                                    <TableCell className="font-mono text-sm">
-                                        {book.ISBN}
-                                    </TableCell>
-                                    <TableCell>
-                                        {book.PublicationYear}
-                                    </TableCell>
-                                    <TableCell className="text-gray-600">
-                                        {book.Publisher}
+                            {authorBooks.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={5}
+                                        className="text-center text-gray-500"
+                                    >
+                                        No books found for this author
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                authorBooks.map((book) => (
+                                    <TableRow key={book.bookId}>
+                                        <TableCell>#{book.bookId}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {book.title}
+                                        </TableCell>
+                                        <TableCell className="font-mono text-sm">
+                                            {book.isbn}
+                                        </TableCell>
+                                        <TableCell>
+                                            {book.publicationYear ?? "-"}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {book.publisherName ?? "-"}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

@@ -44,5 +44,16 @@ public class MemberRepository : IMemberRepository
         await _context.SaveChangesAsync();
         return true;
     }
+    
+    public async Task<int> GetMemberIdByAccountIdAsync(int accountId)
+    {
+        var member = await _context.Members
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.AccountId == accountId);
+        if (member == null)
+            return 0;
+        return member.MemberId;
+    }
+
 
 }

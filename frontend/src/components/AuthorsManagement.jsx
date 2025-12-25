@@ -27,8 +27,20 @@ import {
     updateAuthor,
     deleteAuthor,
 } from "../services/authorService";
+import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/permission";
 
 export function AuthorsManagement({ onNavigate }) {
+    const { roles } = useAuth();
+
+    const canView = hasRole(roles, [
+        "Reader",
+        "Admin",
+        "Librarian",
+        "Assistant",
+    ]);
+    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+
     const [authors, setAuthors] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -136,10 +148,12 @@ export function AuthorsManagement({ onNavigate }) {
                     <p className="text-muted-foreground">Manage all authors.</p>
                 </div>
 
-                <Button onClick={openAddDialog}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Author
-                </Button>
+                {canManage && (
+                    <Button onClick={openAddDialog}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Author
+                    </Button>
+                )}
             </div>
 
             {/* Search */}
@@ -183,40 +197,46 @@ export function AuthorsManagement({ onNavigate }) {
                                     <TableCell>{author.dateOfBirth}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    onNavigate(
-                                                        "author-detail",
-                                                        author.authorId
-                                                    )
-                                                }
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
+                                            {canView && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        onNavigate(
+                                                            "author-detail",
+                                                            author.authorId
+                                                        )
+                                                    }
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            )}
 
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    openEditDialog(author)
-                                                }
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
+                                            {canManage && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        openEditDialog(author)
+                                                    }
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                            )}
 
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        author.authorId
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            {canManage && (
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            author.authorId
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>

@@ -52,4 +52,10 @@
     {
         Staff, Member
     }
+    public enum MessageSender
+    {
+        Reader = 1,
+        Staff = 2
+    }
+
 }

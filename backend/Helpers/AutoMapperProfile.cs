@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
+using backend.DTOs;
 using backend.DTOs.Author;
-using backend.DTOs.Book;
 using backend.DTOs.BookCopy;
 using backend.DTOs.Category;
 using backend.DTOs.Member;
 using backend.DTOs.Publisher;
 using backend.DTOs.Staff;
 using backend.Models;
+using BookDto = backend.DTOs.Book.BookDto;
+using CreateBookDto = backend.DTOs.Book.CreateBookDto;
+using UpdateBookDto = backend.DTOs.Book.UpdateBookDto;
 
 namespace backend.Helpers
 {
@@ -71,6 +74,16 @@ namespace backend.Helpers
                     ));
 
             CreateMap<UpdateStaffDto, Staff>();
+            
+            CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.SenderType, opt => opt.MapFrom(src => src.SenderType.ToString()));
+            
+            CreateMap<Conversation, ConversationDto>()
+                .ForMember(dest => dest.ReaderName, opt => opt.MapFrom(src => src.Reader.FullName))
+                .ForMember(dest => dest.LastMessage, opt => opt.MapFrom(src => 
+                    src.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault().Content ?? ""))
+                .ForMember(dest => dest.LastMessageTime, opt => opt.MapFrom(src => 
+                    src.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault().CreatedAt));
         }
     }
 }

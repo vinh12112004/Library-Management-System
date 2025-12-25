@@ -1,4 +1,5 @@
 ﻿using backend.DTOs.Author;
+using backend.DTOs.Book;
 
 namespace backend.Services.Author
 {
@@ -9,5 +10,7 @@ namespace backend.Services.Author
         Task<AuthorDto> CreateAuthorAsync(CreateAuthorDto createAuthorDto);
         Task<bool> UpdateAuthorAsync(int id, UpdateAuthorDto updateAuthorDto);
         Task<bool> DeleteAuthorAsync(int id);
+        Task<IEnumerable<BookDto>> GetBooksByAuthorIdAsync(int authorId);
+
     }
 }

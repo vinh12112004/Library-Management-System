@@ -4,27 +4,77 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { BookOpen, User, UserCog } from "lucide-react";
+import { BookOpen } from "lucide-react";
+import { login, decodeToken } from "../services/authService";
 
 export function Login({ onLogin }) {
-    const [staffEmail, setStaffEmail] = useState("");
-    const [staffPassword, setStaffPassword] = useState("");
-    const [memberEmail, setMemberEmail] = useState("");
-    const [memberPassword, setMemberPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleStaffSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (staffEmail && staffPassword) {
-            onLogin("Staff");
-        }
-    };
+        setError("");
+        setIsLoading(true);
 
-    const handleMemberSubmit = (e) => {
-        e.preventDefault();
-        if (memberEmail && memberPassword) {
-            onLogin("Member");
+        try {
+            const response = await login({ email, password });
+
+            // Decode token to get user role
+            const decoded = decodeToken(response.token);
+
+            if (!decoded) {
+                setError("Invalid token received");
+                setIsLoading(false);
+                return;
+            }
+
+            // Store token if remember me is checked
+            if (rememberMe) {
+                localStorage.setItem("token", response.token);
+                localStorage.setItem("expiresAt", response.expiresAt);
+            } else {
+                sessionStorage.setItem("token", response.token);
+                sessionStorage.setItem("expiresAt", response.expiresAt);
+            }
+
+            // Get role from JWT claims
+            const role =
+                decoded[
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                ];
+
+            // Determine user type based on role
+            let userType = "staff"; // default
+            if (role === "Reader") {
+                userType = "member";
+            } else if (
+                role === "Admin" ||
+                role === "Librarian" ||
+                role === "Assistant"
+            ) {
+                userType = "staff";
+            }
+
+            // Call onLogin with user type and decoded token info
+            onLogin(userType, {
+                token: response.token,
+                userId: decoded.sub,
+                email: decoded.unique_name,
+                role: role,
+                expiresAt: response.expiresAt,
+            });
+        } catch (error) {
+            console.error("Login error:", error);
+            setError(
+                error.response?.data?.message ||
+                    error.response?.data ||
+                    "Invalid email or password"
+            );
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -48,136 +98,64 @@ export function Login({ onLogin }) {
                 </CardHeader>
 
                 <CardContent>
-                    <Tabs defaultValue="staff" className="w-full">
-                        <TabsList className="grid grid-cols-2 mb-4">
-                            <TabsTrigger value="staff">
-                                <UserCog className="h-4 w-4 mr-2" />
-                                Staff Login
-                            </TabsTrigger>
-                            <TabsTrigger value="member">
-                                <User className="h-4 w-4 mr-2" />
-                                Member Login
-                            </TabsTrigger>
-                        </TabsList>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {error && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                <p className="text-red-600 text-sm">{error}</p>
+                            </div>
+                        )}
 
-                        {/* Staff Login */}
-                        <TabsContent value="staff">
-                            <form
-                                onSubmit={handleStaffSubmit}
-                                className="space-y-4"
-                            >
-                                <div className="space-y-1">
-                                    <Label htmlFor="staffEmail">Email</Label>
-                                    <Input
-                                        id="staffEmail"
-                                        type="email"
-                                        placeholder="staff@example.com"
-                                        value={staffEmail}
-                                        onChange={(e) =>
-                                            setStaffEmail(e.target.value)
-                                        }
-                                        required
-                                    />
-                                </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="your@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
 
-                                <div className="space-y-1">
-                                    <Label htmlFor="staffPassword">
-                                        Password
-                                    </Label>
-                                    <Input
-                                        id="staffPassword"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={staffPassword}
-                                        onChange={(e) =>
-                                            setStaffPassword(e.target.value)
-                                        }
-                                        required
-                                    />
-                                </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
 
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        id="rememberStaff"
-                                        checked={rememberMe}
-                                        onCheckedChange={setRememberMe}
-                                    />
-                                    <label
-                                        htmlFor="rememberStaff"
-                                        className="text-sm"
-                                    >
-                                        Remember me
-                                    </label>
-                                </div>
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="remember"
+                                checked={rememberMe}
+                                onCheckedChange={setRememberMe}
+                                disabled={isLoading}
+                            />
+                            <label htmlFor="remember" className="text-sm">
+                                Remember me
+                            </label>
+                        </div>
 
-                                <Button type="submit" className="w-full">
-                                    Sign In
-                                </Button>
-                            </form>
-                        </TabsContent>
-
-                        {/* Member Login */}
-                        <TabsContent value="member">
-                            <form
-                                onSubmit={handleMemberSubmit}
-                                className="space-y-4"
-                            >
-                                <div className="space-y-1">
-                                    <Label htmlFor="memberEmail">Email</Label>
-                                    <Input
-                                        id="memberEmail"
-                                        type="email"
-                                        placeholder="member@example.com"
-                                        value={memberEmail}
-                                        onChange={(e) =>
-                                            setMemberEmail(e.target.value)
-                                        }
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <Label htmlFor="memberPassword">
-                                        Password
-                                    </Label>
-                                    <Input
-                                        id="memberPassword"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={memberPassword}
-                                        onChange={(e) =>
-                                            setMemberPassword(e.target.value)
-                                        }
-                                        required
-                                    />
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        id="rememberMember"
-                                        checked={rememberMe}
-                                        onCheckedChange={setRememberMe}
-                                    />
-                                    <label
-                                        htmlFor="rememberMember"
-                                        className="text-sm"
-                                    >
-                                        Remember me
-                                    </label>
-                                </div>
-
-                                <Button type="submit" className="w-full">
-                                    Sign In
-                                </Button>
-                            </form>
-                        </TabsContent>
-                    </Tabs>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Signing in..." : "Sign In"}
+                        </Button>
+                    </form>
 
                     <div className="mt-6 text-center">
                         <button className="text-blue-600 hover:underline text-sm">
                             Forgot Password?
                         </button>
-                        <p className="text-gray-400 text-xs mt-1">Demo</p>
                     </div>
                 </CardContent>
             </Card>

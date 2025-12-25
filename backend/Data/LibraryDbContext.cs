@@ -22,6 +22,9 @@ namespace backend.Data
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
         public DbSet<Account> Accounts => Set<Account>();
         public DbSet<AccountRole> AccountRoles => Set<AccountRole>();
+        public DbSet<Conversation> Conversations => Set<Conversation>();
+        public DbSet<Message> Messages => Set<Message>();
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -195,6 +198,36 @@ namespace backend.Data
                 e.Property(x => x.IpAddress).HasMaxLength(45);
                 e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
+            
+            modelBuilder.Entity<Message>(e =>
+            {
+                e.Property(x => x.Content)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+
+                e.Property(x => x.SenderType)
+                    .HasConversion<string>()
+                    .HasMaxLength(10);
+
+                e.HasOne(x => x.Conversation)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(x => x.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => x.CreatedAt);
+            });
+
+            modelBuilder.Entity<Conversation>(e =>
+            {
+                e.HasOne(x => x.Reader)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReaderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                    
+                e.HasIndex(x => x.ReaderId);
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
         }
     }
 }

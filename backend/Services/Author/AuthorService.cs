@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using backend.DTOs.Author;
+using backend.DTOs.Book;
 using backend.Interfaces;
 using backend.Models;
 
@@ -59,6 +60,12 @@ namespace backend.Services.Author
 
             await _authorRepository.DeleteAsync(id);
             return true;
+        }
+        
+        public async Task<IEnumerable<BookDto>> GetBooksByAuthorIdAsync(int authorId)
+        {
+            var books = await _authorRepository.GetBooksByAuthorIdAsync(authorId);
+            return _mapper.Map<IEnumerable<BookDto>>(books);
         }
     }
 }

@@ -14,6 +14,7 @@ import {
     BookmarkCheck,
     DollarSign,
     Star,
+    MessageCircle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -36,10 +37,17 @@ export function Layout({ children, currentPage, onNavigate, userType }) {
         { id: "reservations", label: "Reservations", icon: BookmarkCheck },
         { id: "fines", label: "Fines", icon: DollarSign },
         { id: "reviews", label: "Reviews", icon: Star },
+        { id: "chat", label: "Chat Support", icon: MessageCircle },
     ];
 
     // Tạm thời bỏ filter để xem tất cả items
-    const filteredNavItems = navItems;
+    const filteredNavItems = navItems.filter((item) => {
+        if (userType === "reader") {
+            // Reader chỉ cần Chat
+            return item.id === "chat";
+        }
+        return true; // staff thấy tất cả
+    });
 
     return (
         <div className="flex h-screen bg-gray-50">

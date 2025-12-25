@@ -47,5 +47,15 @@ namespace backend.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Book>> GetBooksByAuthorIdAsync(int authorId)
+        {
+            return await _context.BookAuthors
+                .Where(ba => ba.AuthorId == authorId)
+                .Include(ba => ba.Book)
+                .Select(ba => ba.Book)
+                .Distinct()
+                .ToListAsync();
+        }
+
     }
 }

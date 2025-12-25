@@ -70,5 +70,12 @@ namespace backend.Controllers
 
             return NoContent();
         }
+        // 
+        [HttpGet("{id}/books")]
+        public async Task<IActionResult> GetBooksByAuthor(int id)
+        {
+            var books = await _authorService.GetBooksByAuthorIdAsync(id);
+            return Ok(books);
+        }
     }
 }

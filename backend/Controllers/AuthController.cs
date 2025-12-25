@@ -66,17 +66,19 @@ namespace backend.Controllers
 
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto, CancellationToken ct)
+        public async Task<ActionResult<AuthResponseDto>> Login(
+            [FromBody] LoginDto dto,
+            CancellationToken ct)
         {
             var account = await _db.Accounts
-                .Include(a => _db.AccountRoles.Where(r => r.AccountId == a.AccountId))
                 .FirstOrDefaultAsync(a => a.Username == dto.Email, ct);
 
             if (account == null || !account.IsActive)
                 return Unauthorized("Thông tin đăng nhập không hợp lệ");
 
             var ok = BCrypt.Net.BCrypt.Verify(dto.Password, account.PasswordHash);
-            if (!ok) return Unauthorized("Thông tin đăng nhập không hợp lệ");
+            if (!ok)
+                return Unauthorized("Thông tin đăng nhập không hợp lệ");
 
             var roles = await _db.AccountRoles
                 .Where(r => r.AccountId == account.AccountId)
