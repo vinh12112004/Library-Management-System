@@ -381,8 +381,8 @@ export function LoansManagement() {
                                                     key={copy.copyId}
                                                     value={copy.copyId.toString()}
                                                 >
-                                                    {copy.bookTitle} - Copy #
-                                                    {copy.copyNumber}
+                                                    {copy.bookTitle} -{" "}
+                                                    {copy.barcode}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
