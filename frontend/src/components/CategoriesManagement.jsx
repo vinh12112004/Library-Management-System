@@ -45,16 +45,6 @@ export function CategoriesManagement() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
 
-    // State cho phân trang
-    const [pagination, setPagination] = useState({
-        pageNumber: 1,
-        pageSize: 10,
-        totalCount: 0,
-        totalPages: 0,
-        hasPreviousPage: false,
-        hasNextPage: false,
-    });
-
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -67,33 +57,12 @@ export function CategoriesManagement() {
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories({
-                pageNumber: pagination.pageNumber,
-                pageSize: pagination.pageSize,
-            });
-
-            const items = response?.items || response || [];
-            const nextPageNumber = response?.pageNumber ?? pagination.pageNumber;
-            const nextPageSize = response?.pageSize ?? pagination.pageSize;
-            const totalCount = response?.totalCount ?? items.length;
-            const totalPages =
-                response?.totalPages ??
-                Math.max(1, Math.ceil(totalCount / nextPageSize));
-
-            setCategories(items);
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: nextPageNumber,
-                pageSize: nextPageSize,
-                totalCount,
-                totalPages,
-                hasPreviousPage:
-                    response?.hasPreviousPage ?? nextPageNumber > 1,
-                hasNextPage:
-                    response?.hasNextPage ?? nextPageNumber < totalPages,
-            }));
+            const response = await getCategories();
+            setCategories(response || []);
         } catch (err) {
             console.error("Error fetching categories:", err);
+            setError("Failed to fetch categories. Please try again.");
+            setLoading(false);
             toast.error("Failed to fetch categories");
         }
     };
@@ -155,34 +124,6 @@ export function CategoriesManagement() {
         }
     };
 
-    // Xử lý chuyển trang
-    const handlePreviousPage = () => {
-        if (pagination.hasPreviousPage) {
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: prev.pageNumber - 1,
-            }));
-        }
-    };
-
-    const handleNextPage = () => {
-        if (pagination.hasNextPage) {
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: prev.pageNumber + 1,
-            }));
-        }
-    };
-
-    const handlePageSizeChange = (value) => {
-        const nextSize = Number(value) || 10;
-        setPagination((prev) => ({
-            ...prev,
-            pageSize: nextSize,
-            pageNumber: 1,
-        }));
-    };
-
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
@@ -222,7 +163,14 @@ export function CategoriesManagement() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {categories.map((category) => (
+                            {categories.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                                        No categories available.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                categories.map((category) => (
                                 <TableRow key={category.categoryId}>
                                     <TableCell>
                                         #{category.categoryId}
@@ -262,7 +210,8 @@ export function CategoriesManagement() {
                                         </TableCell>
                                     )}
                                 </TableRow>
-                            ))}
+                            ))
+                            )}
                         </TableBody>
                     </Table>
 
