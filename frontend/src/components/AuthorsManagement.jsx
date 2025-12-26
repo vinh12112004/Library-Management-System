@@ -96,6 +96,8 @@ export function AuthorsManagement() {
 
     const fetchAuthors = async () => {
         try {
+            setLoading(true);
+            setError(null);
             const response = await getAuthors({
                 pageNumber: pagination.pageNumber,
                 pageSize: pagination.pageSize,
@@ -122,8 +124,11 @@ export function AuthorsManagement() {
                 hasNextPage:
                     response?.hasNextPage ?? nextPageNumber < totalPages,
             }));
+            setLoading(false);
         } catch (err) {
             console.error("Error fetching authors:", err);
+            setError("Failed to load authors. Please try again.");
+            setLoading(false);
         }
     };
 

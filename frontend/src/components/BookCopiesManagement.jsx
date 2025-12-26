@@ -287,6 +287,7 @@ export function BookCopiesManagement() {
                                     <TableHead>Location</TableHead>
                                     <TableHead>Acquisition Date</TableHead>
                                     <TableHead>Price</TableHead>
+                                    <TableHead>Change Status</TableHead>
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -324,8 +325,34 @@ export function BookCopiesManagement() {
                                             ${copy.price?.toFixed(2) || "0.00"}
                                         </TableCell>
 
+                                        <TableCell>
+                                            <Select
+                                                value={copy.status.toString()}
+                                                onValueChange={(value) =>
+                                                    handleStatusChange(
+                                                        copy.copyId,
+                                                        value
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger className="w-32">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="w-32">
+                                                    {statuses.map((s) => (
+                                                        <SelectItem
+                                                            key={s.value}
+                                                            value={s.value.toString()}
+                                                        >
+                                                            {s.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </TableCell>
+
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex justify-end items-center gap-2">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -347,30 +374,6 @@ export function BookCopiesManagement() {
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
-
-                                                <Select
-                                                    value={copy.status.toString()}
-                                                    onValueChange={(value) =>
-                                                        handleStatusChange(
-                                                            copy.copyId,
-                                                            value
-                                                        )
-                                                    }
-                                                >
-                                                    <SelectTrigger className="w-32">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {statuses.map((s) => (
-                                                            <SelectItem
-                                                                key={s.value}
-                                                                value={s.value.toString()}
-                                                            >
-                                                                {s.label}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
                                             </div>
                                         </TableCell>
                                     </TableRow>
