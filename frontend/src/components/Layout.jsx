@@ -55,7 +55,7 @@ export function Layout({ children, userType }) {
         { id: "members", path: "/members", label: "Members", icon: Users },
         { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
         { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
-        { id: "fines", path: "/fines", label: "Fines", icon: DollarSign },
+        // { id: "fines", path: "/fines", label: "Fines", icon: DollarSign }, //TODO
         {
             id: "chat",
             path: "/chat",
@@ -68,11 +68,11 @@ export function Layout({ children, userType }) {
     const filteredNavItems = navItems.filter((item) => {
         if (roles.includes("Reader")) {
             // Reader can see: Books, Authors, Categories, Chat
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
         } else if (roles.includes("Librarian")) {
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
         } else if (roles.includes("Assistant")) {
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
         }
         return true; // Admin can see all
     });
