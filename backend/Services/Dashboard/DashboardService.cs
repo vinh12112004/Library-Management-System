@@ -29,7 +29,7 @@ public class DashboardService : IDashboardService
 
         // Overdue loans
         dashboard.OverdueLoans = await _context.Loans
-            .CountAsync(l => l.ReturnDate == null && l.DueDate < DateTime.Now);
+            .CountAsync(l => l.Status == LoanStatus.Overdue);
 
         // Available copies
         dashboard.AvailableCopies = await _context.BookCopies
