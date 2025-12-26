@@ -20,7 +20,7 @@ export function ChatReader() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
-    
+
     // Check if user is a member (Reader)
     const isMember = roles && roles.includes("Reader");
 

@@ -11,6 +11,7 @@ using backend.Services.Book;
 using backend.Services.BookCopy;
 using backend.Services.Category;
 using backend.Services.Chat;
+using backend.Services.Dashboard;
 using backend.Services.Loan;
 using backend.Services.Member;
 using backend.Services.Staff;
@@ -114,6 +115,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 
+//dashboard
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 // 🔹 Controllers
 builder.Services
     .AddControllers()
