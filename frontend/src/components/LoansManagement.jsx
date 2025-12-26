@@ -241,7 +241,7 @@ export function LoansManagement() {
                 status: editingLoan.status,
                 notes: editingLoan.notes,
             };
-            
+
             // Only include returnDate if status is "Returned"
             if (editingLoan.status === "Returned") {
                 updateData.returnDate = editingLoan.returnDate
@@ -250,7 +250,7 @@ export function LoansManagement() {
             } else {
                 updateData.returnDate = null;
             }
-            
+
             await updateLoan(editingLoan.loanId, updateData);
             await loadLoans();
             setShowEditDialog(false);
@@ -402,41 +402,23 @@ export function LoansManagement() {
                                                         <div className="flex gap-2">
                                                             {loan.status ===
                                                                 "Borrowing" && (
-                                                                <>
-                                                                    <Button
-                                                                        onClick={() =>
-                                                                            handleReturn(
-                                                                                loan.loanId
-                                                                            )
-                                                                        }
-                                                                        size="sm"
-                                                                        variant="default"
-                                                                        disabled={
-                                                                            loading
-                                                                        }
-                                                                        title="Mark as returned"
-                                                                    >
-                                                                        <CheckCircle className="w-4 h-4 mr-1" />
-                                                                        Return
-                                                                    </Button>
-                                                                    <Button
-                                                                        onClick={() =>
-                                                                            handleRenew(
-                                                                                loan.loanId,
-                                                                                loan.dueDate
-                                                                            )
-                                                                        }
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        disabled={
-                                                                            loading
-                                                                        }
-                                                                        title="Extend due date by 1 month"
-                                                                    >
-                                                                        <RefreshCw className="w-4 h-4 mr-1" />
-                                                                        Renew
-                                                                    </Button>
-                                                                </>
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        handleRenew(
+                                                                            loan.loanId,
+                                                                            loan.dueDate
+                                                                        )
+                                                                    }
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    disabled={
+                                                                        loading
+                                                                    }
+                                                                    title="Extend due date by 1 month"
+                                                                >
+                                                                    <RefreshCw className="w-4 h-4 mr-1" />
+                                                                    Renew
+                                                                </Button>
                                                             )}
                                                             <Button
                                                                 onClick={() =>
@@ -649,9 +631,13 @@ export function LoansManagement() {
                                             ...editingLoan,
                                             status: val,
                                             // Clear returnDate if status is not Returned
-                                            returnDate: val === "Returned" 
-                                                ? editingLoan.returnDate || new Date().toISOString().split("T")[0]
-                                                : "",
+                                            returnDate:
+                                                val === "Returned"
+                                                    ? editingLoan.returnDate ||
+                                                      new Date()
+                                                          .toISOString()
+                                                          .split("T")[0]
+                                                    : "",
                                         })
                                     }
                                 >

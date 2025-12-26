@@ -39,7 +39,7 @@ import { hasRole } from "../utils/permission";
 
 export function CategoriesManagement() {
     const { roles } = useAuth();
-    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const canManage = hasRole(roles, ["Admin", "Librarian"]);
     const isReader = hasRole(roles, ["Reader"]);
     const [categories, setCategories] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -129,7 +129,9 @@ export function CategoriesManagement() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">
-                        {canManage ? "Categories Management" : "Categories Library"}
+                        {canManage
+                            ? "Categories Management"
+                            : "Categories Library"}
                     </h1>
                     <p className="text-gray-600 mt-1">
                         {canManage
@@ -165,52 +167,55 @@ export function CategoriesManagement() {
                         <TableBody>
                             {categories.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                                    <TableCell
+                                        colSpan={4}
+                                        className="text-center py-8 text-gray-500"
+                                    >
                                         No categories available.
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 categories.map((category) => (
-                                <TableRow key={category.categoryId}>
-                                    <TableCell>
-                                        #{category.categoryId}
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        {category.name}
-                                    </TableCell>
-                                    <TableCell className="text-gray-600">
-                                        {category.description}
-                                    </TableCell>
-                                    {canManage && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditDialog(
-                                                            category
-                                                        )
-                                                    }
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            category.categoryId
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
+                                    <TableRow key={category.categoryId}>
+                                        <TableCell>
+                                            #{category.categoryId}
                                         </TableCell>
-                                    )}
-                                </TableRow>
-                            ))
+                                        <TableCell className="font-medium">
+                                            {category.name}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {category.description}
+                                        </TableCell>
+                                        {canManage && (
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            openEditDialog(
+                                                                category
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                category.categoryId
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))
                             )}
                         </TableBody>
                     </Table>

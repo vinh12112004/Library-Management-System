@@ -63,7 +63,7 @@ export function BooksManagement() {
         "Librarian",
         "Assistant",
     ]);
-    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const canManage = hasRole(roles, ["Admin", "Librarian"]);
     const isReader = hasRole(roles, ["Reader"]);
     // ----------------------------------------
     // STATES
@@ -130,7 +130,10 @@ export function BooksManagement() {
 
     const fetchAuthors = async () => {
         try {
-            const response = await getAuthors({ pageNumber: 1, pageSize: 10000 });
+            const response = await getAuthors({
+                pageNumber: 1,
+                pageSize: 10000,
+            });
             setAuthors(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching authors:", error);
@@ -139,7 +142,10 @@ export function BooksManagement() {
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories({ pageNumber: 1, pageSize: 10000 });
+            const response = await getCategories({
+                pageNumber: 1,
+                pageSize: 10000,
+            });
             setCategories(response?.items || response || []);
         } catch (error) {
             console.error("Error fetching categories:", error);
@@ -164,7 +170,9 @@ export function BooksManagement() {
     };
 
     const goToNextPage = () => {
-        setPage((prev) => (totalPages ? Math.min(totalPages, prev + 1) : prev + 1));
+        setPage((prev) =>
+            totalPages ? Math.min(totalPages, prev + 1) : prev + 1
+        );
     };
 
     const handlePageSizeChange = (value) => {
@@ -516,7 +524,6 @@ export function BooksManagement() {
                     </Button>
                 </div>
             </div>
-
 
             {/* Add/Edit Dialog */}
             <Dialog
