@@ -25,7 +25,14 @@ import {
     DialogFooter,
     DialogTitle,
 } from "./ui/dialog";
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Plus,
+    Edit,
+    Trash2,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -44,6 +51,17 @@ export function CategoriesManagement() {
     const [categories, setCategories] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // State pagination
+    const [pagination, setPagination] = useState({
+        pageNumber: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+    });
 
     const [formData, setFormData] = useState({
         name: "",
@@ -53,17 +71,83 @@ export function CategoriesManagement() {
     // Load categories từ backend
     useEffect(() => {
         fetchCategories();
-    }, [pagination.pageNumber, pagination.pageSize]);
+    }, [pagination.pageNumber, pagination.pageSize, searchQuery]);
 
     const fetchCategories = async () => {
         try {
-            const response = await getCategories();
-            setCategories(response || []);
+            // Gọi API với pageNumber, pageSize và name (search)
+            const response = await getCategories({
+                pageNumber: pagination.pageNumber,
+                pageSize: pagination.pageSize,
+                name: searchQuery || undefined, // Chỉ gửi name nếu có search query
+            });
+
+            // Check if response has items array (paginated response)
+            if (response && Array.isArray(response.items)) {
+                setCategories(response.items);
+                setPagination({
+                    pageNumber: response.pageNumber || 1,
+                    pageSize: response.pageSize || 10,
+                    totalCount: response.totalCount || 0,
+                    totalPages: response.totalPages || 0,
+                    hasPreviousPage: response.hasPreviousPage || false,
+                    hasNextPage: response.hasNextPage || false,
+                });
+            } else if (Array.isArray(response)) {
+                // If response is just an array
+                setCategories(response);
+                setPagination((prev) => ({
+                    ...prev,
+                    totalCount: response.length,
+                    totalPages: Math.ceil(response.length / prev.pageSize),
+                    hasPreviousPage: prev.pageNumber > 1,
+                    hasNextPage:
+                        prev.pageNumber <
+                        Math.ceil(response.length / prev.pageSize),
+                }));
+            } else {
+                setCategories([]);
+            }
         } catch (err) {
             console.error("Error fetching categories:", err);
-            setError("Failed to fetch categories. Please try again.");
-            setLoading(false);
             toast.error("Failed to fetch categories");
+            setCategories([]);
+        }
+    };
+
+    // Handler cho search
+    const handleSearch = (e) => {
+        setSearchQuery(e.target.value);
+        setPagination((prev) => ({
+            ...prev,
+            pageNumber: 1, // Reset về trang 1 khi search
+        }));
+    };
+
+    // Handler cho pagination
+    const handlePageSizeChange = (value) => {
+        setPagination((prev) => ({
+            ...prev,
+            pageSize: parseInt(value),
+            pageNumber: 1,
+        }));
+    };
+
+    const handleNextPage = () => {
+        if (pagination.hasNextPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber + 1,
+            }));
+        }
+    };
+
+    const handlePreviousPage = () => {
+        if (pagination.hasPreviousPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber - 1,
+            }));
         }
     };
 
@@ -149,6 +233,21 @@ export function CategoriesManagement() {
                 )}
             </div>
 
+            {/* Search Bar */}
+            <Card>
+                <CardContent className="pt-6">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                            placeholder="Search categories by name..."
+                            value={searchQuery}
+                            onChange={handleSearch}
+                            className="pl-10"
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardContent className="p-0">
                     <Table>
@@ -171,7 +270,9 @@ export function CategoriesManagement() {
                                         colSpan={4}
                                         className="text-center py-8 text-gray-500"
                                     >
-                                        No categories available.
+                                        {searchQuery
+                                            ? "No categories found matching your search."
+                                            : "No categories available."}
                                     </TableCell>
                                 </TableRow>
                             ) : (

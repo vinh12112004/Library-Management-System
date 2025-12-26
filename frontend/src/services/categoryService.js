@@ -1,6 +1,6 @@
 import apiClient from "./apiClient";
 
-// Lấy categories: hỗ trợ gọi kiểu (pageNumber, pageSize) hoặc object { pageNumber, pageSize, ... }
+// Lấy categories: hỗ trợ gọi kiểu (pageNumber, pageSize) hoặc object { pageNumber, pageSize, name, ... }
 export const getCategories = async (pageNumberOrOptions = 1, pageSize = 10) => {
     let params;
 
