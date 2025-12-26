@@ -31,8 +31,6 @@ export function Layout({ children, userType }) {
     };
 
     // Determine user type from roles if not provided
-    const actualUserType =
-        userType || (roles.includes("Reader") ? "reader" : "staff");
     const navItems = [
         {
             id: "dashboard",
@@ -72,7 +70,7 @@ export function Layout({ children, userType }) {
             // Reader can see: Books, Authors, Categories, Chat
             return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
         } else if (roles.includes("Librarian")) {
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "members", "chat"].includes(item.id);
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
         } else if (roles.includes("Assistant")) {
             return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
         }
