@@ -400,26 +400,6 @@ export function LoansManagement() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex gap-2">
-                                                            {loan.status ===
-                                                                "Borrowing" && (
-                                                                <Button
-                                                                    onClick={() =>
-                                                                        handleRenew(
-                                                                            loan.loanId,
-                                                                            loan.dueDate
-                                                                        )
-                                                                    }
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    disabled={
-                                                                        loading
-                                                                    }
-                                                                    title="Extend due date by 1 month"
-                                                                >
-                                                                    <RefreshCw className="w-4 h-4 mr-1" />
-                                                                    Renew
-                                                                </Button>
-                                                            )}
                                                             <Button
                                                                 onClick={() =>
                                                                     handleEdit(
