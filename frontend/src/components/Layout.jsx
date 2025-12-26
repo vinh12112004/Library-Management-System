@@ -68,13 +68,15 @@ export function Layout({ children, userType }) {
 
     // Tạm thời bỏ filter để xem tất cả items
     const filteredNavItems = navItems.filter((item) => {
-        if (actualUserType === "reader") {
+        if (roles.includes("Reader")) {
             // Reader can see: Books, Authors, Categories, Chat
-            return ["books", "authors", "categories", "chat", "loans"].includes(
-                item.id
-            );
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
+        } else if (roles.includes("Librarian")) {
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "members", "chat"].includes(item.id);
+        } else if (roles.includes("Assistant")) {
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "fines", "chat"].includes(item.id);
         }
-        return true; // staff sees everything
+        return true; // Admin can see all
     });
 
     return (

@@ -56,7 +56,7 @@ export function AuthorsManagement() {
         "Librarian",
         "Assistant",
     ]);
-    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const canManage = hasRole(roles, ["Admin", "Librarian"]);
 
     // Debug: Check roles
     useEffect(() => {
