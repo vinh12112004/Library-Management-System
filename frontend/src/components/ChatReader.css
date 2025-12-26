@@ -18,6 +18,13 @@
     border-bottom: 1px solid #e5e7eb;
     font-weight: 600;
     font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-reader-header h2 {
+    margin: 0;
 }
 
 /* Area chứa message */

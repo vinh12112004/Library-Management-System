@@ -237,13 +237,21 @@ export function LoansManagement() {
     const handleUpdateLoan = async () => {
         try {
             setLoading(true);
-            await updateLoan(editingLoan.loanId, {
-                returnDate: editingLoan.returnDate
-                    ? new Date(editingLoan.returnDate).toISOString()
-                    : null,
+            const updateData = {
                 status: editingLoan.status,
                 notes: editingLoan.notes,
-            });
+            };
+            
+            // Only include returnDate if status is "Returned"
+            if (editingLoan.status === "Returned") {
+                updateData.returnDate = editingLoan.returnDate
+                    ? new Date(editingLoan.returnDate).toISOString()
+                    : new Date().toISOString();
+            } else {
+                updateData.returnDate = null;
+            }
+            
+            await updateLoan(editingLoan.loanId, updateData);
             await loadLoans();
             setShowEditDialog(false);
             setEditingLoan(null);
@@ -640,6 +648,10 @@ export function LoansManagement() {
                                         setEditingLoan({
                                             ...editingLoan,
                                             status: val,
+                                            // Clear returnDate if status is not Returned
+                                            returnDate: val === "Returned" 
+                                                ? editingLoan.returnDate || new Date().toISOString().split("T")[0]
+                                                : "",
                                         })
                                     }
                                 >
@@ -659,22 +671,24 @@ export function LoansManagement() {
                                 </Select>
                             </div>
 
-                            <div>
-                                <Label htmlFor="editReturnDate">
-                                    Return Date
-                                </Label>
-                                <Input
-                                    id="editReturnDate"
-                                    type="date"
-                                    value={editingLoan.returnDate}
-                                    onChange={(e) =>
-                                        setEditingLoan({
-                                            ...editingLoan,
-                                            returnDate: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
+                            {editingLoan.status === "Returned" && (
+                                <div>
+                                    <Label htmlFor="editReturnDate">
+                                        Return Date
+                                    </Label>
+                                    <Input
+                                        id="editReturnDate"
+                                        type="date"
+                                        value={editingLoan.returnDate}
+                                        onChange={(e) =>
+                                            setEditingLoan({
+                                                ...editingLoan,
+                                                returnDate: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                            )}
 
                             <div>
                                 <Label htmlFor="editNotes">Notes</Label>
