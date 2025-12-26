@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using backend.DTOs;
 using backend.DTOs.Author;
+using backend.DTOs.Book;
 using backend.DTOs.BookCopy;
 using backend.DTOs.Category;
 using backend.DTOs.Loan;
@@ -8,9 +9,6 @@ using backend.DTOs.Member;
 using backend.DTOs.Publisher;
 using backend.DTOs.Staff;
 using backend.Models;
-using BookDto = backend.DTOs.Book.BookDto;
-using CreateBookDto = backend.DTOs.Book.CreateBookDto;
-using UpdateBookDto = backend.DTOs.Book.UpdateBookDto;
 
 namespace backend.Helpers
 {
@@ -49,7 +47,15 @@ namespace backend.Helpers
                                 .Where(bc => bc.Category != null)
                                 .Select(bc => bc.Category.Name)
                                 .ToList()
-                            : new List<string>()));
+                            : new List<string>()))
+                .ForMember(dest => dest.TotalCopies,
+                    opt => opt.MapFrom(src => 
+                        src.BookCopies != null ? src.BookCopies.Count : 0))
+                .ForMember(dest => dest.AvailableCopies,
+                    opt => opt.MapFrom(src => 
+                        src.BookCopies != null 
+                            ? src.BookCopies.Count(bc => bc.Status == CopyStatus.Available) 
+                            : 0));
 
             CreateMap<CreateBookDto, Book>();
             CreateMap<UpdateBookDto, Book>();
@@ -107,6 +113,14 @@ namespace backend.Helpers
 
                 CreateMap<CreateLoanDto, Loan>();
                 CreateMap<UpdateLoanDto, Loan>();
+                
+                // bookcopy
+                CreateMap<CreateBookCopyDto, BookCopy>();
+                CreateMap<UpdateBookCopyDto, BookCopy>();
+                CreateMap<BookCopy, BookCopyDto>()
+                    .ForMember(dest => dest.BookTitle,
+                        opt => opt.MapFrom(src => src.Book != null ? src.Book.Title : null));
+
         }
     }
 }

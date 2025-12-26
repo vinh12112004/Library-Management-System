@@ -57,22 +57,29 @@ export function ChatSupport() {
                 connectionStarted.current = true;
 
                 onReceiveMessage((message) => {
+                    console.log("Received message:", message); // Debug log
+
                     setMessagesMap((prev) => {
                         const convId = message.conversationId;
                         const existingMsgs = prev[convId] || [];
 
-                        // Tránh duplicate
+                        // Tránh duplicate - check theo id
                         if (existingMsgs.some((m) => m.id === message.id)) {
+                            console.log("Duplicate message detected, skipping");
                             return prev;
                         }
 
+                        console.log(
+                            "Adding new message to conversation:",
+                            convId
+                        );
                         return {
                             ...prev,
                             [convId]: [...existingMsgs, message],
                         };
                     });
 
-                    // Update last message
+                    // Update last message in users list
                     setUsers((prev) =>
                         prev.map((u) =>
                             u.id === message.conversationId
@@ -83,14 +90,33 @@ export function ChatSupport() {
                 });
             })
             .catch(console.error);
-    }, [isAuthenticated]);
+    }, [isAuthenticated, navigate]);
 
-    // Join/Leave conversation khi đổi selectedUser
+    // Join/Leave conversation và load messages khi đổi selectedUser
     useEffect(() => {
         if (!selectedUser?.id || !connectionStarted.current) return;
 
+        const loadMessagesForConversation = async (conversationId) => {
+            console.log("Loading messages for conversation:", conversationId);
+
+            try {
+                const msgs = await getMessages(conversationId);
+                console.log("Loaded messages:", msgs);
+
+                setMessagesMap((prev) => ({
+                    ...prev,
+                    [conversationId]: msgs || [],
+                }));
+            } catch (error) {
+                console.error("Error loading messages:", error);
+            }
+        };
+
         // Leave previous conversation
-        if (prevConversationId.current) {
+        if (
+            prevConversationId.current &&
+            prevConversationId.current !== selectedUser.id
+        ) {
             leaveConversation(prevConversationId.current);
         }
 
@@ -98,17 +124,8 @@ export function ChatSupport() {
         joinConversation(selectedUser.id);
         prevConversationId.current = selectedUser.id;
 
-        // Load messages nếu chưa có
-        if (!messagesMap[selectedUser.id]) {
-            getMessages(selectedUser.id)
-                .then((msgs) => {
-                    setMessagesMap((prev) => ({
-                        ...prev,
-                        [selectedUser.id]: msgs || [],
-                    }));
-                })
-                .catch(console.error);
-        }
+        // Load messages - LUÔN LOAD để đảm bảo có data mới nhất
+        loadMessagesForConversation(selectedUser.id);
 
         return () => {
             if (selectedUser.id) {
@@ -123,10 +140,16 @@ export function ChatSupport() {
         if (!input.trim() || !selectedUser) return;
 
         try {
+            console.log("Sending message:", {
+                ConversationId: selectedUser.id,
+                Content: input,
+            });
+
             await sendMessage({
                 ConversationId: selectedUser.id,
                 Content: input,
             });
+
             setInput("");
         } catch (err) {
             console.error("Error sending message:", err);

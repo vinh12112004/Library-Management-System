@@ -8,4 +8,5 @@ public interface IStaffRepository
     Task<Staff?> GetByIdAsync(int id);
     Task<Staff> UpdateAsync(Staff staff);
     Task<bool> DeleteAsync(int id);
+    Task<int?> GetStaffIdByAccountIdAsync(int accountId);
 }

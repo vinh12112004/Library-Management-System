@@ -16,6 +16,8 @@ namespace backend.DTOs.Book
         public string PublisherName { get; set; }
         public IEnumerable<string> Authors { get; set; }
         public IEnumerable<string> Categories { get; set; }
+        public int TotalCopies { get; set; }
+        public int AvailableCopies { get; set; }
     }
 
     public class CreateBookDto
@@ -48,6 +50,7 @@ namespace backend.DTOs.Book
 
         [Required]
         public List<int> CategoryIds { get; set; } = new List<int>();
+
     }
 
     public class UpdateBookDto

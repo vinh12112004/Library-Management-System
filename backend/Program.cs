@@ -11,6 +11,7 @@ using backend.Services.Book;
 using backend.Services.BookCopy;
 using backend.Services.Category;
 using backend.Services.Chat;
+using backend.Services.Dashboard;
 using backend.Services.Loan;
 using backend.Services.Member;
 using backend.Services.Staff;
@@ -27,9 +28,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins("http://localhost:3000", "https://pablo11.duckdns.org")
                 .AllowAnyHeader()
-                .AllowAnyMethod()
+                .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .AllowCredentials();
         });
 });
@@ -114,6 +115,8 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 
+//dashboard
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 // 🔹 Controllers
 builder.Services
     .AddControllers()
@@ -206,5 +209,5 @@ app.UseAuthentication(); // Add this before UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatHub>("/chatHub").RequireCors("AllowReact");
 app.Run();

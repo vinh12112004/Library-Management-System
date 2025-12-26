@@ -21,6 +21,7 @@ namespace backend.Repositories
             var query = _context.Books
                 .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .Include(b => b.BookCategories).ThenInclude(bc => bc.Category)
+                .Include(b => b.BookCopies)
                 .AsQueryable();
 
             // Apply filters
@@ -54,6 +55,7 @@ namespace backend.Repositories
             return await _context.Books
                 .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
                 .Include(b => b.BookCategories).ThenInclude(bc => bc.Category)
+                .Include(b => b.BookCopies)
                 .FirstOrDefaultAsync(b => b.BookId == id);
         }
 

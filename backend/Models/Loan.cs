@@ -25,7 +25,7 @@ namespace backend.Models
         public DateTime? ReturnDate { get; set; }
         public LoanStatus Status { get; set; } = LoanStatus.Borrowing;
         public int RenewalCount { get; set; } = 0;
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation Properties

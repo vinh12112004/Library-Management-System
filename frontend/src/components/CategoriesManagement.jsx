@@ -25,7 +25,14 @@ import {
     DialogFooter,
     DialogTitle,
 } from "./ui/dialog";
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Plus,
+    Edit,
+    Trash2,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -39,13 +46,14 @@ import { hasRole } from "../utils/permission";
 
 export function CategoriesManagement() {
     const { roles } = useAuth();
-    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+    const canManage = hasRole(roles, ["Admin", "Librarian"]);
     const isReader = hasRole(roles, ["Reader"]);
     const [categories, setCategories] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
-    // State cho phân trang
+    // State pagination
     const [pagination, setPagination] = useState({
         pageNumber: 1,
         pageSize: 10,
@@ -63,38 +71,83 @@ export function CategoriesManagement() {
     // Load categories từ backend
     useEffect(() => {
         fetchCategories();
-    }, [pagination.pageNumber, pagination.pageSize]);
+    }, [pagination.pageNumber, pagination.pageSize, searchQuery]);
 
     const fetchCategories = async () => {
         try {
+            // Gọi API với pageNumber, pageSize và name (search)
             const response = await getCategories({
                 pageNumber: pagination.pageNumber,
                 pageSize: pagination.pageSize,
+                name: searchQuery || undefined, // Chỉ gửi name nếu có search query
             });
 
-            const items = response?.items || response || [];
-            const nextPageNumber = response?.pageNumber ?? pagination.pageNumber;
-            const nextPageSize = response?.pageSize ?? pagination.pageSize;
-            const totalCount = response?.totalCount ?? items.length;
-            const totalPages =
-                response?.totalPages ??
-                Math.max(1, Math.ceil(totalCount / nextPageSize));
-
-            setCategories(items);
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: nextPageNumber,
-                pageSize: nextPageSize,
-                totalCount,
-                totalPages,
-                hasPreviousPage:
-                    response?.hasPreviousPage ?? nextPageNumber > 1,
-                hasNextPage:
-                    response?.hasNextPage ?? nextPageNumber < totalPages,
-            }));
+            // Check if response has items array (paginated response)
+            if (response && Array.isArray(response.items)) {
+                setCategories(response.items);
+                setPagination({
+                    pageNumber: response.pageNumber || 1,
+                    pageSize: response.pageSize || 10,
+                    totalCount: response.totalCount || 0,
+                    totalPages: response.totalPages || 0,
+                    hasPreviousPage: response.hasPreviousPage || false,
+                    hasNextPage: response.hasNextPage || false,
+                });
+            } else if (Array.isArray(response)) {
+                // If response is just an array
+                setCategories(response);
+                setPagination((prev) => ({
+                    ...prev,
+                    totalCount: response.length,
+                    totalPages: Math.ceil(response.length / prev.pageSize),
+                    hasPreviousPage: prev.pageNumber > 1,
+                    hasNextPage:
+                        prev.pageNumber <
+                        Math.ceil(response.length / prev.pageSize),
+                }));
+            } else {
+                setCategories([]);
+            }
         } catch (err) {
             console.error("Error fetching categories:", err);
             toast.error("Failed to fetch categories");
+            setCategories([]);
+        }
+    };
+
+    // Handler cho search
+    const handleSearch = (e) => {
+        setSearchQuery(e.target.value);
+        setPagination((prev) => ({
+            ...prev,
+            pageNumber: 1, // Reset về trang 1 khi search
+        }));
+    };
+
+    // Handler cho pagination
+    const handlePageSizeChange = (value) => {
+        setPagination((prev) => ({
+            ...prev,
+            pageSize: parseInt(value),
+            pageNumber: 1,
+        }));
+    };
+
+    const handleNextPage = () => {
+        if (pagination.hasNextPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber + 1,
+            }));
+        }
+    };
+
+    const handlePreviousPage = () => {
+        if (pagination.hasPreviousPage) {
+            setPagination((prev) => ({
+                ...prev,
+                pageNumber: prev.pageNumber - 1,
+            }));
         }
     };
 
@@ -155,40 +208,14 @@ export function CategoriesManagement() {
         }
     };
 
-    // Xử lý chuyển trang
-    const handlePreviousPage = () => {
-        if (pagination.hasPreviousPage) {
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: prev.pageNumber - 1,
-            }));
-        }
-    };
-
-    const handleNextPage = () => {
-        if (pagination.hasNextPage) {
-            setPagination((prev) => ({
-                ...prev,
-                pageNumber: prev.pageNumber + 1,
-            }));
-        }
-    };
-
-    const handlePageSizeChange = (value) => {
-        const nextSize = Number(value) || 10;
-        setPagination((prev) => ({
-            ...prev,
-            pageSize: nextSize,
-            pageNumber: 1,
-        }));
-    };
-
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">
-                        {canManage ? "Categories Management" : "Categories Library"}
+                        {canManage
+                            ? "Categories Management"
+                            : "Categories Library"}
                     </h1>
                     <p className="text-gray-600 mt-1">
                         {canManage
@@ -206,6 +233,21 @@ export function CategoriesManagement() {
                 )}
             </div>
 
+            {/* Search Bar */}
+            <Card>
+                <CardContent className="pt-6">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                            placeholder="Search categories by name..."
+                            value={searchQuery}
+                            onChange={handleSearch}
+                            className="pl-10"
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardContent className="p-0">
                     <Table>
@@ -222,47 +264,60 @@ export function CategoriesManagement() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {categories.map((category) => (
-                                <TableRow key={category.categoryId}>
-                                    <TableCell>
-                                        #{category.categoryId}
+                            {categories.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={4}
+                                        className="text-center py-8 text-gray-500"
+                                    >
+                                        {searchQuery
+                                            ? "No categories found matching your search."
+                                            : "No categories available."}
                                     </TableCell>
-                                    <TableCell className="font-medium">
-                                        {category.name}
-                                    </TableCell>
-                                    <TableCell className="text-gray-600">
-                                        {category.description}
-                                    </TableCell>
-                                    {canManage && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditDialog(
-                                                            category
-                                                        )
-                                                    }
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            category.categoryId
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    )}
                                 </TableRow>
-                            ))}
+                            ) : (
+                                categories.map((category) => (
+                                    <TableRow key={category.categoryId}>
+                                        <TableCell>
+                                            #{category.categoryId}
+                                        </TableCell>
+                                        <TableCell className="font-medium">
+                                            {category.name}
+                                        </TableCell>
+                                        <TableCell className="text-gray-600">
+                                            {category.description}
+                                        </TableCell>
+                                        {canManage && (
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            openEditDialog(
+                                                                category
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                category.categoryId
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
 

@@ -69,6 +69,8 @@ export function AuthorsManagement() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAuthor, setEditingAuthor] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [pagination, setPagination] = useState({
         pageNumber: 1,
@@ -88,6 +90,7 @@ export function AuthorsManagement() {
 
     // Load data
     useEffect(() => {
+
         fetchAuthors();
     }, [pagination.pageNumber, pagination.pageSize, searchQuery]);
 
@@ -123,6 +126,8 @@ export function AuthorsManagement() {
             console.error("Error fetching authors:", err);
         }
     };
+
+
 
     const openAddDialog = () => {
         setFormData({
@@ -215,6 +220,47 @@ export function AuthorsManagement() {
         );
     });
 
+    if (loading) {
+        return (
+            <div className="space-y-6 p-4">
+                <div className="flex justify-center items-center h-64">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading authors...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-6 p-4">
+                <div className="flex justify-center items-center h-64">
+                    <div className="text-center">
+                        <p className="text-red-600 mb-4">{error}</p>
+                        <Button onClick={() => {
+                            setError(null);
+                            setLoading(true);
+                            getAuthors()
+                                .then((data) => {
+                                    setAuthors(data || []);
+                                    setLoading(false);
+                                })
+                                .catch((err) => {
+                                    console.error("Error fetching authors:", err);
+                                    setError("Failed to load authors. Please try again.");
+                                    setLoading(false);
+                                });
+                        }}>
+                            Try Again
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
@@ -262,7 +308,14 @@ export function AuthorsManagement() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredAuthors.map((author) => (
+                            {filteredAuthors.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                        {searchQuery ? "No authors found matching your search." : "No authors available."}
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredAuthors.map((author) => (
                                 <TableRow key={author.authorId}>
                                     <TableCell>#{author.authorId}</TableCell>
                                     <TableCell className="font-medium">
@@ -314,7 +367,8 @@ export function AuthorsManagement() {
                                         </div>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ))
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

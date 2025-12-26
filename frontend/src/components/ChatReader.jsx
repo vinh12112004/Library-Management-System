@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getOrCreateConversation, getMessages } from "../services/chatService";
 import {
@@ -9,14 +10,19 @@ import {
     onReceiveMessage,
     sendMessage,
 } from "../services/signalrService";
+import { Button } from "./ui/button";
 import "./ChatReader.css";
 
 export function ChatReader() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, roles } = useAuth();
+    const navigate = useNavigate();
     const [conversationId, setConversationId] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
+
+    // Check if user is a member (Reader)
+    const isMember = roles && roles.includes("Reader");
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,6 +89,16 @@ export function ChatReader() {
     return (
         <div className="chat-reader-container">
             <div className="chat-reader-header">
+                {isMember && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate("/dashboard")}
+                        title="Quay lại Dashboard"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                )}
                 <h2>Hỗ trợ trực tuyến</h2>
             </div>
 
