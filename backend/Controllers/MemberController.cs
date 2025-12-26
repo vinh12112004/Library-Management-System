@@ -1,11 +1,13 @@
 using backend.DTOs.Member;
 using backend.Services.Member;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class MemberController : ControllerBase
 {
     private readonly IMemberService _memberService;
@@ -17,6 +19,7 @@ public class MemberController : ControllerBase
 
     // GET: api/Member
     [HttpGet]
+    [Authorize(Roles =  "Admin")]
     public async Task<ActionResult<IEnumerable<MemberDto>>> GetMembers()
     {
         var members = await _memberService.GetAllMembersAsync();
@@ -25,6 +28,7 @@ public class MemberController : ControllerBase
 
     // GET: api/Member/5
     [HttpGet("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<ActionResult<MemberDto>> GetMember(int id)
     {
         var memberDto = await _memberService.GetMemberByIdAsync(id);
@@ -39,6 +43,7 @@ public class MemberController : ControllerBase
 
     // PUT: api/Member/5
     [HttpPut("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<IActionResult> PutMember(int id, UpdateMemberDto updateMemberDto)
     {
         var wasUpdated = await _memberService.UpdateMemberAsync(id, updateMemberDto);
@@ -52,6 +57,7 @@ public class MemberController : ControllerBase
 
     // DELETE: api/Member/5
     [HttpDelete("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<IActionResult> DeleteMember(int id)
     {
         var wasDeleted = await _memberService.DeleteMemberAsync(id);

@@ -2,6 +2,7 @@
 using backend.DTOs.Auth;
 using backend.Models;
 using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ namespace backend.Controllers
             _tokenService = tokenService;
         }
         [HttpPost("register-staff")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> RegisterStaff([FromBody] StaffRegisterDto dto, CancellationToken ct)
         {
             if (await _db.Accounts.AnyAsync(a => a.Username == dto.Email, ct))
@@ -66,6 +68,7 @@ namespace backend.Controllers
 
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<AuthResponseDto>> Login(
             [FromBody] LoginDto dto,
             CancellationToken ct)
@@ -95,6 +98,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("register-member")]
+        [Authorize(Roles =  "Admin")]
         public async Task<ActionResult> RegisterMember([FromBody] MemberRegisterDto dto, CancellationToken ct)
         {
             var username = !string.IsNullOrWhiteSpace(dto.Email)

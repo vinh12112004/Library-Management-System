@@ -98,9 +98,13 @@ public class LoanRepository : ILoanRepository
         public async Task<IEnumerable<Loan>> GetLoansByMemberIdAsync(int memberId)
         {
             return await _context.Loans
-                .Where(l => l.MemberId == memberId)
+                .Include(l => l.Member)
                 .Include(l => l.BookCopy)
-                    .ThenInclude(bc => bc.Book)
+                .ThenInclude(bc => bc.Book)
+                .Include(l => l.Staff)
+                .Where(l => l.MemberId == memberId)
+                .OrderByDescending(l => l.LoanDate)
                 .ToListAsync();
         }
+        
     }

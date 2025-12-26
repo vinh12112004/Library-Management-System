@@ -1,11 +1,13 @@
 using backend.DTOs.Staff;
 using backend.Services.Staff;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class StaffController : ControllerBase
 {
     private readonly IStaffService _staffService;
@@ -17,6 +19,7 @@ public class StaffController : ControllerBase
 
     // GET: api/Staff
     [HttpGet]
+    [Authorize(Roles =  "Admin")]
     public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaffs()
     {
         var staffs = await _staffService.GetAllStaffsAsync();
@@ -25,6 +28,7 @@ public class StaffController : ControllerBase
 
     // GET: api/Staff/5
     [HttpGet("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<ActionResult<StaffDto>> GetStaff(int id)
     {
         var staffDto = await _staffService.GetStaffByIdAsync(id);
@@ -39,6 +43,7 @@ public class StaffController : ControllerBase
 
     // PUT: api/Staff/5
     [HttpPut("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<IActionResult> PutStaff(int id, UpdateStaffDto updateStaffDto)
     {
         var wasUpdated = await _staffService.UpdateStaffAsync(id, updateStaffDto);
@@ -52,6 +57,7 @@ public class StaffController : ControllerBase
 
     // DELETE: api/Staff/5
     [HttpDelete("{id}")]
+    [Authorize(Roles =  "Admin")]
     public async Task<IActionResult> DeleteStaff(int id)
     {
         var wasDeleted = await _staffService.DeleteStaffAsync(id);

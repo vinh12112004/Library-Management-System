@@ -1,5 +1,6 @@
 import apiClient from "./apiClient";
 
+// Lấy loans với pagination và filters (Admin/Librarian)
 export const getLoans = async (pageNumberOrOptions = 1, pageSize = 10) => {
     let params;
 
@@ -16,11 +17,13 @@ export const getLoans = async (pageNumberOrOptions = 1, pageSize = 10) => {
     return response.data;
 };
 
+// Lấy loan theo ID
 export const getLoanById = async (id) => {
     const response = await apiClient.get(`/Loan/${id}`);
     return response.data;
 };
 
+// Tạo loan mới
 export const createLoan = async (loan) => {
     const response = await apiClient.post("/Loan", {
         ...loan,
@@ -32,6 +35,7 @@ export const createLoan = async (loan) => {
     return response.data;
 };
 
+// Cập nhật loan
 export const updateLoan = async (id, loan) => {
     const response = await apiClient.put(`/Loan/${id}`, {
         ...loan,
@@ -42,12 +46,14 @@ export const updateLoan = async (id, loan) => {
     return response.data;
 };
 
+// Xóa loan
 export const deleteLoan = async (id) => {
     const response = await apiClient.delete(`/Loan/${id}`);
     return response.data;
 };
 
-export const getLoansByMemberId = async (memberId) => {
-    const response = await apiClient.get(`/Loan/member/${memberId}`);
+// Lấy loans của chính mình (Reader) - Tự động từ token
+export const getMyLoans = async () => {
+    const response = await apiClient.get("/Loan/my-loans");
     return response.data;
 };
