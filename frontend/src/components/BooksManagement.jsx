@@ -64,7 +64,7 @@ export function BooksManagement() {
         "Assistant",
     ]);
     const canManage = hasRole(roles, ["Admin", "Librarian"]);
-    const isReader = hasRole(roles, ["Reader"]);
+    const isReader = hasRole(roles, ["Reader", "Assistant"]);
     // ----------------------------------------
     // STATES
     // ----------------------------------------

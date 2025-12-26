@@ -56,8 +56,6 @@ export function Layout({ children, userType }) {
     };
 
     // Determine user type from roles if not provided
-    const actualUserType =
-        userType || (roles.includes("Reader") ? "reader" : "staff");
     const navItems = [
         {
             id: "dashboard",
@@ -82,7 +80,7 @@ export function Layout({ children, userType }) {
         { id: "members", path: "/members", label: "Members", icon: Users },
         { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
         { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
-        { id: "fines", path: "/fines", label: "Fines", icon: DollarSign },
+        // { id: "fines", path: "/fines", label: "Fines", icon: DollarSign }, //TODO
         {
             id: "chat",
             path: "/chat",
@@ -93,13 +91,15 @@ export function Layout({ children, userType }) {
 
     // Tạm thời bỏ filter để xem tất cả items
     const filteredNavItems = navItems.filter((item) => {
-        if (actualUserType === "reader") {
+        if (roles.includes("Reader")) {
             // Reader can see: Books, Authors, Categories, Chat
-            return ["books", "authors", "categories", "chat", "loans"].includes(
-                item.id
-            );
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
+        } else if (roles.includes("Librarian")) {
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
+        } else if (roles.includes("Assistant")) {
+            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
         }
-        return true; // staff sees everything
+        return true; // Admin can see all
     });
 
     return (
