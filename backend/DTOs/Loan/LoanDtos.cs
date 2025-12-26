@@ -43,5 +43,5 @@ public class UpdateLoanDto
 {
     public DateTime? ReturnDate { get; set; }
     public LoanStatus? Status { get; set; }
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
 }
