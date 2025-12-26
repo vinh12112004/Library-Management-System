@@ -28,6 +28,8 @@ import {
     TableRow,
 } from "./ui/table";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/permission";
 
 import {
     getBookCopies,
@@ -37,6 +39,16 @@ import {
 } from "../services/bookCopyService";
 
 export function BookCopiesManagement() {
+    const { roles } = useAuth();
+
+    const canView = hasRole(roles, [
+        "Reader",
+        "Admin",
+        "Librarian",
+        "Assistant",
+    ]);
+    const canManage = hasRole(roles, ["Admin", "Librarian", "Assistant"]);
+
     const [copies, setCopies] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -224,13 +236,15 @@ export function BookCopiesManagement() {
                 <div>
                     <h1 className="text-2xl font-bold">Book Copies</h1>
                     <p className="text-gray-500 text-sm">
-                        Manage library copy records
+                        {canManage ? "Manage book copies in the library." : "View book copies in the library."}
                     </p>
                 </div>
-                <Button onClick={openAddDialog}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Copy
-                </Button>
+                {canManage && (
+                    <Button onClick={openAddDialog}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Copy
+                    </Button>
+                )}
             </div>
 
             {/* Search + Filters */}
@@ -287,10 +301,14 @@ export function BookCopiesManagement() {
                                     <TableHead>Location</TableHead>
                                     <TableHead>Acquisition Date</TableHead>
                                     <TableHead>Price</TableHead>
-                                    <TableHead>Change Status</TableHead>
-                                    <TableHead className="text-right">
-                                        Actions
-                                    </TableHead>
+                                    {canManage && (
+                                        <>
+                                            <TableHead>Change Status</TableHead>
+                                            <TableHead className="text-right">
+                                                Actions
+                                            </TableHead>
+                                        </>
+                                    )}
                                 </TableRow>
                             </TableHeader>
 
@@ -325,57 +343,61 @@ export function BookCopiesManagement() {
                                             ${copy.price?.toFixed(2) || "0.00"}
                                         </TableCell>
 
-                                        <TableCell>
-                                            <Select
-                                                value={copy.status.toString()}
-                                                onValueChange={(value) =>
-                                                    handleStatusChange(
-                                                        copy.copyId,
-                                                        value
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger className="w-32">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="w-32">
-                                                    {statuses.map((s) => (
-                                                        <SelectItem
-                                                            key={s.value}
-                                                            value={s.value.toString()}
+                                        {canManage && (
+                                            <>
+                                                <TableCell>
+                                                    <Select
+                                                        value={copy.status.toString()}
+                                                        onValueChange={(value) =>
+                                                            handleStatusChange(
+                                                                copy.copyId,
+                                                                value
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger className="w-32">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="w-32">
+                                                            {statuses.map((s) => (
+                                                                <SelectItem
+                                                                    key={s.value}
+                                                                    value={s.value.toString()}
+                                                                >
+                                                                    {s.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </TableCell>
+
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end items-center gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                openEditDialog(copy)
+                                                            }
                                                         >
-                                                            {s.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
 
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end items-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditDialog(copy)
-                                                    }
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            copy.copyId
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    copy.copyId
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </>
+                                        )}
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -47,7 +47,7 @@ import { hasRole } from "../utils/permission";
 export function CategoriesManagement() {
     const { roles } = useAuth();
     const canManage = hasRole(roles, ["Admin", "Librarian"]);
-    const isReader = hasRole(roles, ["Reader"]);
+    const isReader = hasRole(roles, ["Reader", "Assistant"]);
     const [categories, setCategories] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
