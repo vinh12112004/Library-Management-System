@@ -83,10 +83,13 @@ namespace backend.Controllers
         }
 
         // GET: api/Loan/member/5
-        [HttpGet("member/{memberId}")]
-        public async Task<IActionResult> GetLoansByMember(int memberId)
+        [HttpGet("my-loans")]
+        [Authorize(Roles = "Reader")]
+        public async Task<IActionResult> GetLoansByMember()
         {
-            var loans = await _loanService.GetLoansByMemberIdAsync(memberId);
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var loans = await _loanService.GetLoansByMemberIdAsync(accountId);
             return Ok(loans);
         }
     }

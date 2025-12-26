@@ -11,15 +11,17 @@ namespace backend.Services.Loan
     {
         private readonly ILoanRepository _loanRepository;
         private readonly IStaffRepository _staffRepository;
+        private readonly IMemberRepository _memberRepository;
         private readonly IBookCopyRepository _bookCopyRepository;
         private readonly IMapper _mapper;
 
-        public LoanService(ILoanRepository loanRepository, IMapper mapper, IStaffRepository staffRepository, IBookCopyRepository bookCopyRepository)
+        public LoanService(ILoanRepository loanRepository, IMapper mapper, IStaffRepository staffRepository, IBookCopyRepository bookCopyRepository, IMemberRepository memberRepository)
         {
             _loanRepository = loanRepository;
             _mapper = mapper;
             _staffRepository = staffRepository;
             _bookCopyRepository = bookCopyRepository;
+            _memberRepository = memberRepository;
         }
 
         public async Task<PagedResult<LoanDto>> GetAllLoansAsync(LoanQuery query)
@@ -110,8 +112,12 @@ namespace backend.Services.Loan
             return true;
         }
 
-        public async Task<IEnumerable<LoanDto>> GetLoansByMemberIdAsync(int memberId)
+        public async Task<IEnumerable<LoanDto>> GetLoansByMemberIdAsync(int accid)
         {
+            var memberId = await _memberRepository.GetMemberIdByAccountIdAsync(accid);
+
+            if (memberId == null)
+                throw new Exception($"No member linked with accountId = {accid}");
             var loans = await _loanRepository.GetLoansByMemberIdAsync(memberId);
             return _mapper.Map<IEnumerable<LoanDto>>(loans);
         }
