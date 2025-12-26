@@ -39,3 +39,11 @@ export const decodeToken = (token) => {
         return null;
     }
 };
+
+export const changePassword = async ({ currentPassword, newPassword }) => {
+    const response = await apiClient.post("/Auth/change-password", {
+        currentPassword,
+        newPassword,
+    });
+    return response.data;
+};

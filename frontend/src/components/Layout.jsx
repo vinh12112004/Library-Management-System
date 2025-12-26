@@ -19,8 +19,15 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import { changePassword } from "../services/authService";
 
 export function Layout({ children, userType }) {
+    const [isChangePassOpen, setIsChangePassOpen] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
     const location = useLocation();
     const { roles, user, logout } = useAuth();
@@ -28,6 +35,24 @@ export function Layout({ children, userType }) {
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
+    };
+
+    const handleChangePassword = async () => {
+        if (!currentPassword || !newPassword)
+            return alert("Nhập đầy đủ thông tin");
+        try {
+            setLoading(true);
+            await changePassword({ currentPassword, newPassword });
+            alert("Đổi mật khẩu thành công!");
+            setIsChangePassOpen(false);
+            setCurrentPassword("");
+            setNewPassword("");
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || "Đổi mật khẩu thất bại");
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Determine user type from roles if not provided
@@ -148,6 +173,13 @@ export function Layout({ children, userType }) {
                     </div>
                     <Button
                         variant="outline"
+                        className="w-full mb-2"
+                        onClick={() => setIsChangePassOpen(true)}
+                    >
+                        Đổi mật khẩu
+                    </Button>
+                    <Button
+                        variant="outline"
                         className="w-full"
                         onClick={handleLogout}
                     >
@@ -182,6 +214,47 @@ export function Layout({ children, userType }) {
                         </div>
                     </div>
                 </header>
+                {isChangePassOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-xl w-96 shadow-lg border border-gray-300">
+                            <h2 className="text-lg font-bold mb-4">
+                                Đổi mật khẩu
+                            </h2>
+                            <input
+                                type="password"
+                                placeholder="Mật khẩu hiện tại"
+                                className="w-full p-2 mb-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={currentPassword}
+                                onChange={(e) =>
+                                    setCurrentPassword(e.target.value)
+                                }
+                            />
+                            <input
+                                type="password"
+                                placeholder="Mật khẩu mới"
+                                className="w-full p-2 mb-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                                <button
+                                    className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                                    onClick={() => setIsChangePassOpen(false)}
+                                    disabled={loading}
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                    onClick={handleChangePassword}
+                                    disabled={loading}
+                                >
+                                    {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-auto p-6">{children}</main>
