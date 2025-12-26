@@ -31,25 +31,48 @@ export function Layout({ children, userType }) {
     };
 
     // Determine user type from roles if not provided
-    const actualUserType = userType || (roles.includes("Reader") ? "reader" : "staff");
+    const actualUserType =
+        userType || (roles.includes("Reader") ? "reader" : "staff");
     const navItems = [
-        { id: "dashboard", path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        {
+            id: "dashboard",
+            path: "/dashboard",
+            label: "Dashboard",
+            icon: LayoutDashboard,
+        },
         { id: "books", path: "/books", label: "Books", icon: BookOpen },
         { id: "authors", path: "/authors", label: "Authors", icon: UserCircle },
-        { id: "categories", path: "/categories", label: "Categories", icon: FolderTree },
-        { id: "book-copies", path: "/book-copies", label: "Book Copies", icon: BookCopy },
+        {
+            id: "categories",
+            path: "/categories",
+            label: "Categories",
+            icon: FolderTree,
+        },
+        {
+            id: "book-copies",
+            path: "/book-copies",
+            label: "Book Copies",
+            icon: BookCopy,
+        },
         { id: "members", path: "/members", label: "Members", icon: Users },
         { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
         { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
         { id: "fines", path: "/fines", label: "Fines", icon: DollarSign },
-        { id: "chat", path: "/chat", label: "Chat Support", icon: MessageCircle },
+        {
+            id: "chat",
+            path: "/chat",
+            label: "Chat Support",
+            icon: MessageCircle,
+        },
     ];
 
     // Tạm thời bỏ filter để xem tất cả items
     const filteredNavItems = navItems.filter((item) => {
         if (actualUserType === "reader") {
             // Reader can see: Books, Authors, Categories, Chat
-            return ["books", "authors", "categories", "chat"].includes(item.id);
+            return ["books", "authors", "categories", "chat", "loans"].includes(
+                item.id
+            );
         }
         return true; // staff sees everything
     });
@@ -78,10 +101,16 @@ export function Layout({ children, userType }) {
                     <ul className="space-y-1 px-3">
                         {filteredNavItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive = location.pathname === item.path ||
-                                (item.id === "books" && location.pathname.startsWith("/books/")) ||
-                                (item.id === "authors" && location.pathname.startsWith("/authors/")) ||
-                                (item.id === "members" && location.pathname.startsWith("/members/"));
+                            const isActive =
+                                location.pathname === item.path ||
+                                (item.id === "books" &&
+                                    location.pathname.startsWith("/books/")) ||
+                                (item.id === "authors" &&
+                                    location.pathname.startsWith(
+                                        "/authors/"
+                                    )) ||
+                                (item.id === "members" &&
+                                    location.pathname.startsWith("/members/"));
                             return (
                                 <li key={item.id}>
                                     <button

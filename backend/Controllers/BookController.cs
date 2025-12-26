@@ -1,6 +1,7 @@
 using backend.DTOs.Book;
 using backend.DTOs.Shared;
 using backend.Services.Book;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -18,6 +19,7 @@ namespace backend.Controllers
 
         // GET: api/Book
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<BookDto>>> GetBooks([FromQuery] BookQueryParameters queryParameters)
         {
             var books = await _bookService.GetAllBooksAsync(queryParameters);
@@ -26,6 +28,7 @@ namespace backend.Controllers
 
         // GET: api/Book/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<BookDto>> GetBook(int id)
         {
             var bookDto = await _bookService.GetBookByIdAsync(id);
@@ -38,6 +41,7 @@ namespace backend.Controllers
 
         // POST: api/Book
         [HttpPost]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<ActionResult<BookDto>> PostBook([FromForm] CreateBookDto createBookDto)
         {
             var newBookDto = await _bookService.CreateBookAsync(createBookDto);
@@ -47,6 +51,7 @@ namespace backend.Controllers
 
         // PUT: api/Book/5
         [HttpPut("{id}")]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<IActionResult> PutBook(int id, UpdateBookDto updateBookDto)
         {
             var wasUpdated = await _bookService.UpdateBookAsync(id, updateBookDto);
@@ -59,6 +64,7 @@ namespace backend.Controllers
 
         // DELETE: api/Book/5
         [HttpDelete("{id}")]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             var wasDeleted = await _bookService.DeleteBookAsync(id);

@@ -1,5 +1,6 @@
 ﻿using backend.DTOs.Author;
 using backend.Services.Author;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -17,6 +18,7 @@ namespace backend.Controllers
 
         // GET: api/Author
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors([FromQuery] AuthorQuery query)
         {
             if (query.PageNumber < 1 || query.PageSize < 1)
@@ -30,6 +32,7 @@ namespace backend.Controllers
 
         // GET: api/Author/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<AuthorDto>> GetAuthor(int id)
         {
             var authorDto = await _authorService.GetAuthorByIdAsync(id);
@@ -44,6 +47,7 @@ namespace backend.Controllers
 
         // POST: api/Author
         [HttpPost]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<ActionResult<AuthorDto>> PostAuthor(CreateAuthorDto createAuthorDto)
         {
             var newAuthorDto = await _authorService.CreateAuthorAsync(createAuthorDto);
@@ -52,6 +56,7 @@ namespace backend.Controllers
 
         // PUT: api/Author/5
         [HttpPut("{id}")]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<IActionResult> PutAuthor(int id, UpdateAuthorDto updateAuthorDto)
         {
             var wasUpdated = await _authorService.UpdateAuthorAsync(id, updateAuthorDto);
@@ -64,6 +69,7 @@ namespace backend.Controllers
         }
 
         // DELETE: api/Author/5
+        [Authorize(Roles =  "Admin,Librarian")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAuthor(int id)
         {
@@ -77,6 +83,7 @@ namespace backend.Controllers
         }
         // 
         [HttpGet("{id}/books")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetBooksByAuthor(int id)
         {
             var books = await _authorService.GetBooksByAuthorIdAsync(id);

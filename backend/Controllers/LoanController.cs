@@ -20,6 +20,7 @@ namespace backend.Controllers
 
         // GET: api/Loan
         [HttpGet]
+        [Authorize(Roles =  "Admin,Librarian,Assistant")]
         public async Task<ActionResult<IEnumerable<LoanDto>>> GetLoans([FromQuery] LoanQuery query)
         {
             if (query.PageNumber < 1 || query.PageSize < 1)
@@ -33,6 +34,7 @@ namespace backend.Controllers
 
         // GET: api/Loan/5
         [HttpGet("{id}")]
+        [Authorize(Roles =  "Admin,Librarian,Assistant")]
         public async Task<ActionResult<LoanDto>> GetLoan(int id)
         {
             var loanDto = await _loanService.GetLoanByIdAsync(id);
@@ -47,6 +49,7 @@ namespace backend.Controllers
 
         // POST: api/Loan
         [HttpPost]
+        [Authorize(Roles =  "Admin,Librarian,Assistant")]
         public async Task<ActionResult<LoanDto>> PostLoan(CreateLoanDto createLoanDto)
         {
             var accountId = int.Parse(
@@ -58,6 +61,7 @@ namespace backend.Controllers
 
         // PUT: api/Loan/5
         [HttpPut("{id}")]
+        [Authorize(Roles =  "Admin,Librarian,Assistant")]
         public async Task<IActionResult> PutLoan(int id, UpdateLoanDto updateLoanDto)
         {
             var wasUpdated = await _loanService.UpdateLoanAsync(id, updateLoanDto);
@@ -71,6 +75,7 @@ namespace backend.Controllers
 
         // DELETE: api/Loan/5
         [HttpDelete("{id}")]
+        [Authorize(Roles =  "Admin,Librarian,Assistant")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
             var wasDeleted = await _loanService.DeleteLoanAsync(id);

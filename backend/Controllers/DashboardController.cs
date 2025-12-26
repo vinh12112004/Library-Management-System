@@ -7,7 +7,6 @@ namespace backend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-// [Authorize(Roles = "Admin,Librarian")]
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;

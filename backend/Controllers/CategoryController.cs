@@ -1,5 +1,6 @@
 using backend.DTOs.Category;
 using backend.Services.Category;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -17,6 +18,7 @@ namespace backend.Controllers
 
         // GET: api/Category
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery] CategoryQuery query)
         {
             if (query.PageNumber < 1 || query.PageSize < 1)
@@ -30,6 +32,7 @@ namespace backend.Controllers
 
         // GET: api/Category/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryDto>> GetCategory(int id)
         {
             var categoryDto = await _categoryService.GetCategoryByIdAsync(id);
@@ -42,6 +45,7 @@ namespace backend.Controllers
 
         // POST: api/Category
         [HttpPost]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<ActionResult<CategoryDto>> PostCategory(CreateCategoryDto createCategoryDto)
         {
             var newCategoryDto = await _categoryService.CreateCategoryAsync(createCategoryDto);
@@ -50,6 +54,7 @@ namespace backend.Controllers
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<IActionResult> PutCategory(int id, UpdateCategoryDto updateCategoryDto)
         {
             var wasUpdated = await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
@@ -62,6 +67,7 @@ namespace backend.Controllers
 
         // DELETE: api/Category/5
         [HttpDelete("{id}")]
+        [Authorize(Roles =  "Admin,Librarian")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var wasDeleted = await _categoryService.DeleteCategoryAsync(id);

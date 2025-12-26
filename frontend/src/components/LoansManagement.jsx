@@ -20,27 +20,24 @@ import {
     TableHeader,
     TableRow,
 } from "./ui/table";
-import {
-    Search,
-    BookMarked,
-    CheckCircle,
-    AlertTriangle,
-    Calendar,
-    Edit,
-    Trash2,
-    RefreshCw,
-} from "lucide-react";
+import { Search, BookMarked, AlertTriangle, Edit, Trash2 } from "lucide-react";
 import {
     getLoans,
+    getMyLoans,
     createLoan,
     updateLoan,
     deleteLoan,
-    getLoansByMemberId,
 } from "../services/loanService";
 import { getMembers } from "../services/memberService";
 import { getBookCopies } from "../services/bookCopyService";
+import { useAuth } from "../context/AuthContext";
+import { hasRole } from "../utils/permission";
 
 export function LoansManagement() {
+    const { roles } = useAuth();
+    const isReader = hasRole(roles, ["Reader"]);
+    const canManage = hasRole(roles, ["Admin", "Librarian"]);
+
     const [loans, setLoans] = useState([]);
     const [members, setMembers] = useState([]);
     const [bookCopies, setBookCopies] = useState([]);
@@ -70,17 +67,24 @@ export function LoansManagement() {
     // Load data khi component mount
     useEffect(() => {
         loadLoans();
-        loadMembers();
-        loadBookCopies();
-    }, []);
+        if (canManage) {
+            loadMembers();
+            loadBookCopies();
+        }
+    }, [canManage]);
 
     const loadLoans = async () => {
         try {
             setLoading(true);
-            const data = await getLoans({ pageNumber: 1, pageSize: 100 });
-            setLoans(data.items || data);
+            // Reader gọi getMyLoans, Staff gọi getLoans
+            const data = isReader
+                ? await getMyLoans()
+                : await getLoans({ pageNumber: 1, pageSize: 100 });
+
+            setLoans(Array.isArray(data) ? data : data.items || []);
         } catch (error) {
             console.error("Error loading loans:", error);
+            setLoans([]);
         } finally {
             setLoading(false);
         }
@@ -132,6 +136,7 @@ export function LoansManagement() {
         const due = new Date(dueDate);
         return due < today;
     };
+
     const parseDMY = (dateStr) => {
         if (!dateStr) return null;
         const [day, month, year] = dateStr.split("-");
@@ -267,14 +272,24 @@ export function LoansManagement() {
     return (
         <div className="space-y-6 p-4">
             <div>
-                <h1 className="text-2xl font-bold">Loans Management</h1>
-                <p className="text-gray-600">Manage all book loans</p>
+                <h1 className="text-2xl font-bold">
+                    {isReader ? "My Loans" : "Loans Management"}
+                </h1>
+                <p className="text-gray-600">
+                    {isReader
+                        ? "View your borrowed books"
+                        : "Manage all book loans"}
+                </p>
             </div>
 
             <Tabs defaultValue="all">
                 <TabsList className="mb-4">
-                    <TabsTrigger value="all">All Loans</TabsTrigger>
-                    <TabsTrigger value="borrow">Borrow Book</TabsTrigger>
+                    <TabsTrigger value="all">
+                        {isReader ? "My Loans" : "All Loans"}
+                    </TabsTrigger>
+                    {canManage && (
+                        <TabsTrigger value="borrow">Borrow Book</TabsTrigger>
+                    )}
                 </TabsList>
 
                 {/* All Loans Tab */}
@@ -316,50 +331,62 @@ export function LoansManagement() {
                                 <div className="text-center py-8">
                                     Loading...
                                 </div>
+                            ) : filteredLoans.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    {searchQuery || statusFilter !== "all"
+                                        ? "No loans found matching your filters."
+                                        : isReader
+                                        ? "You haven't borrowed any books yet."
+                                        : "No loans available."}
+                                </div>
                             ) : (
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Loan ID</TableHead>
-                                            <TableHead>Member</TableHead>
+                                            {!isReader && (
+                                                <TableHead>Member</TableHead>
+                                            )}
                                             <TableHead>Book</TableHead>
                                             <TableHead>Loan Date</TableHead>
                                             <TableHead>Due Date</TableHead>
                                             <TableHead>Return Date</TableHead>
-                                            <TableHead>Staff</TableHead>
+                                            {!isReader && (
+                                                <TableHead>Staff</TableHead>
+                                            )}
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                            {canManage && (
+                                                <TableHead>Actions</TableHead>
+                                            )}
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredLoans.map((loan) => {
                                             const overdue =
                                                 isOverdue(loan.dueDate) &&
-                                                loan.status === "Active";
+                                                loan.status === "Borrowing";
                                             return (
                                                 <TableRow key={loan.loanId}>
                                                     <TableCell>
                                                         #{loan.loanId}
                                                     </TableCell>
-                                                    <TableCell className="font-medium">
-                                                        {loan.memberName}
-                                                    </TableCell>
+                                                    {!isReader && (
+                                                        <TableCell className="font-medium">
+                                                            {loan.memberName}
+                                                        </TableCell>
+                                                    )}
                                                     <TableCell>
                                                         {loan.bookTitle}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {parseDMY(
+                                                        {new Date(
                                                             loan.loanDate
-                                                        )?.toLocaleDateString(
-                                                            "vi-VN"
-                                                        )}
+                                                        ).toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {parseDMY(
+                                                        {new Date(
                                                             loan.dueDate
-                                                        )?.toLocaleDateString(
-                                                            "vi-VN"
-                                                        )}
+                                                        ).toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell>
                                                         {loan.returnDate
@@ -368,9 +395,12 @@ export function LoansManagement() {
                                                               ).toLocaleDateString()
                                                             : "-"}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        {loan.staffName || "-"}
-                                                    </TableCell>
+                                                    {!isReader && (
+                                                        <TableCell>
+                                                            {loan.staffName ||
+                                                                "-"}
+                                                        </TableCell>
+                                                    )}
                                                     <TableCell>
                                                         {overdue ? (
                                                             <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
@@ -398,40 +428,42 @@ export function LoansManagement() {
                                                             </Badge>
                                                         )}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                onClick={() =>
-                                                                    handleEdit(
-                                                                        loan
-                                                                    )
-                                                                }
-                                                                size="sm"
-                                                                variant="outline"
-                                                                disabled={
-                                                                    loading
-                                                                }
-                                                                title="Edit loan"
-                                                            >
-                                                                <Edit className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                onClick={() =>
-                                                                    handleDelete(
-                                                                        loan.loanId
-                                                                    )
-                                                                }
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                disabled={
-                                                                    loading
-                                                                }
-                                                                title="Delete loan record"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
+                                                    {canManage && (
+                                                        <TableCell>
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        handleEdit(
+                                                                            loan
+                                                                        )
+                                                                    }
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    disabled={
+                                                                        loading
+                                                                    }
+                                                                    title="Edit loan"
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            loan.loanId
+                                                                        )
+                                                                    }
+                                                                    size="sm"
+                                                                    variant="destructive"
+                                                                    disabled={
+                                                                        loading
+                                                                    }
+                                                                    title="Delete loan record"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    )}
                                                 </TableRow>
                                             );
                                         })}
@@ -442,158 +474,162 @@ export function LoansManagement() {
                     </Card>
                 </TabsContent>
 
-                {/* Borrow Book Tab */}
-                <TabsContent value="borrow">
-                    <Card>
-                        <CardHeader>
-                            <div>
-                                <h2 className="text-lg font-bold">
-                                    Borrow Book
-                                </h2>
-                                <p className="text-gray-500">
-                                    Fill the form to borrow a book
-                                </p>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                {/* Borrow Book Tab - Only for Staff */}
+                {canManage && (
+                    <TabsContent value="borrow">
+                        <Card>
+                            <CardHeader>
                                 <div>
-                                    <Label htmlFor="member">Member *</Label>
-                                    <Select
-                                        value={
-                                            borrowForm.memberId
-                                                ? borrowForm.memberId.toString()
-                                                : ""
-                                        }
-                                        onValueChange={(val) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                memberId: parseInt(val),
-                                            })
+                                    <h2 className="text-lg font-bold">
+                                        Borrow Book
+                                    </h2>
+                                    <p className="text-gray-500">
+                                        Fill the form to borrow a book
+                                    </p>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="member">Member *</Label>
+                                        <Select
+                                            value={
+                                                borrowForm.memberId
+                                                    ? borrowForm.memberId.toString()
+                                                    : ""
+                                            }
+                                            onValueChange={(val) =>
+                                                setBorrowForm({
+                                                    ...borrowForm,
+                                                    memberId: parseInt(val),
+                                                })
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select member" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {members.map((member) => (
+                                                    <SelectItem
+                                                        key={member.memberId}
+                                                        value={member.memberId.toString()}
+                                                    >
+                                                        {member.fullName} (
+                                                        {member.memberCode})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="copy">
+                                            Book Copy *
+                                        </Label>
+                                        <Select
+                                            value={
+                                                borrowForm.copyId
+                                                    ? borrowForm.copyId.toString()
+                                                    : ""
+                                            }
+                                            onValueChange={(val) =>
+                                                setBorrowForm({
+                                                    ...borrowForm,
+                                                    copyId: parseInt(val),
+                                                })
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select book copy" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {bookCopies.map((copy) => (
+                                                    <SelectItem
+                                                        key={copy.copyId}
+                                                        value={copy.copyId.toString()}
+                                                    >
+                                                        {copy.bookTitle} -{" "}
+                                                        {copy.barcode}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="loanDate">
+                                            Loan Date *
+                                        </Label>
+                                        <Input
+                                            id="loanDate"
+                                            type="date"
+                                            value={borrowForm.loanDate}
+                                            onChange={(e) =>
+                                                setBorrowForm({
+                                                    ...borrowForm,
+                                                    loanDate: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="dueDate">
+                                            Due Date * (Default: 1 month)
+                                        </Label>
+                                        <Input
+                                            id="dueDate"
+                                            type="date"
+                                            value={borrowForm.dueDate}
+                                            onChange={(e) =>
+                                                setBorrowForm({
+                                                    ...borrowForm,
+                                                    dueDate: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <Label htmlFor="notes">Notes</Label>
+                                        <Input
+                                            id="notes"
+                                            placeholder="Optional notes"
+                                            value={borrowForm.notes}
+                                            onChange={(e) =>
+                                                setBorrowForm({
+                                                    ...borrowForm,
+                                                    notes: e.target.value,
+                                                })
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Button
+                                        onClick={handleBorrow}
+                                        disabled={
+                                            loading ||
+                                            !borrowForm.memberId ||
+                                            !borrowForm.copyId ||
+                                            !borrowForm.dueDate
                                         }
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select member" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {members.map((member) => (
-                                                <SelectItem
-                                                    key={member.memberId}
-                                                    value={member.memberId.toString()}
-                                                >
-                                                    {member.fullName} (
-                                                    {member.memberCode})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        <BookMarked className="w-4 h-4 mr-1" />
+                                        {loading
+                                            ? "Processing..."
+                                            : "Confirm Borrow"}
+                                    </Button>
                                 </div>
-
-                                <div>
-                                    <Label htmlFor="copy">Book Copy *</Label>
-                                    <Select
-                                        value={
-                                            borrowForm.copyId
-                                                ? borrowForm.copyId.toString()
-                                                : ""
-                                        }
-                                        onValueChange={(val) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                copyId: parseInt(val),
-                                            })
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select book copy" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {bookCopies.map((copy) => (
-                                                <SelectItem
-                                                    key={copy.copyId}
-                                                    value={copy.copyId.toString()}
-                                                >
-                                                    {copy.bookTitle} -{" "}
-                                                    {copy.barcode}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="loanDate">
-                                        Loan Date *
-                                    </Label>
-                                    <Input
-                                        id="loanDate"
-                                        type="date"
-                                        value={borrowForm.loanDate}
-                                        onChange={(e) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                loanDate: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="dueDate">
-                                        Due Date * (Default: 1 month)
-                                    </Label>
-                                    <Input
-                                        id="dueDate"
-                                        type="date"
-                                        value={borrowForm.dueDate}
-                                        onChange={(e) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                dueDate: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-
-                                <div className="col-span-2">
-                                    <Label htmlFor="notes">Notes</Label>
-                                    <Input
-                                        id="notes"
-                                        placeholder="Optional notes"
-                                        value={borrowForm.notes}
-                                        onChange={(e) =>
-                                            setBorrowForm({
-                                                ...borrowForm,
-                                                notes: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <Button
-                                    onClick={handleBorrow}
-                                    disabled={
-                                        loading ||
-                                        !borrowForm.memberId ||
-                                        !borrowForm.copyId ||
-                                        !borrowForm.dueDate
-                                    }
-                                >
-                                    <BookMarked className="w-4 h-4 mr-1" />
-                                    {loading
-                                        ? "Processing..."
-                                        : "Confirm Borrow"}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                )}
             </Tabs>
 
-            {/* Edit Dialog */}
-            {showEditDialog && editingLoan && (
+            {/* Edit Dialog - Only for Staff */}
+            {canManage && showEditDialog && editingLoan && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <Card className="w-full max-w-md">
                         <CardHeader>
@@ -610,7 +646,6 @@ export function LoansManagement() {
                                         setEditingLoan({
                                             ...editingLoan,
                                             status: val,
-                                            // Clear returnDate if status is not Returned
                                             returnDate:
                                                 val === "Returned"
                                                     ? editingLoan.returnDate ||
