@@ -206,5 +206,5 @@ app.UseAuthentication(); // Add this before UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatHub>("/chatHub").RequireCors("AllowReact");
 app.Run();
