@@ -1,15 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { getConversations, getMessages } from "../services/chatService";
+import { useAuth } from "../../context/AuthContext";
+import { getConversations, getMessages } from "../../services/chatService";
 import {
     startConnection,
     joinConversation,
     leaveConversation,
     onReceiveMessage,
     sendMessage,
-} from "../services/signalrService";
+} from "../../services/signalrService";
 import "./ChatSupport.css";
 
 export function ChatSupport() {

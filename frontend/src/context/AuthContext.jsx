@@ -1,4 +1,11 @@
-import { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
+import {
+    createContext,
+    useContext,
+    useMemo,
+    useState,
+    useEffect,
+    useCallback,
+} from "react";
 import { decodeToken } from "../services/authService";
 
 const AuthContext = createContext(null);
@@ -23,7 +30,8 @@ export function AuthProvider({ children }) {
             setRefreshKey((prev) => prev + 1);
         };
         window.addEventListener("auth-change", handleAuthChange);
-        return () => window.removeEventListener("auth-change", handleAuthChange);
+        return () =>
+            window.removeEventListener("auth-change", handleAuthChange);
     }, []);
 
     const token =
@@ -49,7 +57,13 @@ export function AuthProvider({ children }) {
 
     const value = useMemo(() => {
         if (!token) {
-            return { isAuthenticated: false, roles: [], user: null, logout, refresh };
+            return {
+                isAuthenticated: false,
+                roles: [],
+                user: null,
+                logout,
+                refresh,
+            };
         }
 
         // Kiểm tra token có hết hạn không
@@ -58,12 +72,24 @@ export function AuthProvider({ children }) {
             localStorage.removeItem("expiresAt");
             sessionStorage.removeItem("token");
             sessionStorage.removeItem("expiresAt");
-            return { isAuthenticated: false, roles: [], user: null, logout, refresh };
+            return {
+                isAuthenticated: false,
+                roles: [],
+                user: null,
+                logout,
+                refresh,
+            };
         }
 
         const decoded = decodeToken(token);
         if (!decoded) {
-            return { isAuthenticated: false, roles: [], user: null, logout, refresh };
+            return {
+                isAuthenticated: false,
+                roles: [],
+                user: null,
+                logout,
+                refresh,
+            };
         }
 
         const roles =

@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
     Table,
     TableBody,
@@ -10,7 +10,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { ArrowLeft, User } from "lucide-react";
 import {
     mockMembers,
@@ -18,7 +18,7 @@ import {
     mockReservations,
     mockFines,
     mockReviews,
-} from "../data/mockData";
+} from "../../data/mockData";
 
 export function MemberDetail() {
     const { id } = useParams();

@@ -13,12 +13,6 @@ export function Login() {
     const navigate = useNavigate();
     const { isAuthenticated, refresh } = useAuth();
 
-    // Redirect if already authenticated
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate("/dashboard", { replace: true });
-        }
-    }, [isAuthenticated, navigate]);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
@@ -33,16 +27,13 @@ export function Login() {
         try {
             const response = await login({ email, password });
 
-            // Decode token to get user role
             const decoded = decodeToken(response.token);
 
             if (!decoded) {
                 setError("Invalid token received");
-                setIsLoading(false);
                 return;
             }
 
-            // Store token if remember me is checked
             if (rememberMe) {
                 localStorage.setItem("token", response.token);
                 localStorage.setItem("expiresAt", response.expiresAt);
@@ -51,20 +42,22 @@ export function Login() {
                 sessionStorage.setItem("expiresAt", response.expiresAt);
             }
 
-            // Trigger AuthContext refresh
             refresh();
-            
-            // Small delay to ensure context is updated
+
+            const role =
+                decoded[
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                ];
+
             setTimeout(() => {
-                navigate("/dashboard", { replace: true });
+                if (role === "Reader") {
+                    navigate("/", { replace: true }); // CLIENT
+                } else {
+                    navigate("/admin", { replace: true }); // ADMIN
+                }
             }, 100);
         } catch (error) {
-            console.error("Login error:", error);
-            setError(
-                error.response?.data?.message ||
-                    error.response?.data ||
-                    "Invalid email or password"
-            );
+            setError("Invalid email or password");
         } finally {
             setIsLoading(false);
         }

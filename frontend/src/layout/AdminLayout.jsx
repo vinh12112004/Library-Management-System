@@ -15,14 +15,15 @@ import {
     MessageCircle,
     LogOut,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { changePassword } from "../services/authService";
+import { Outlet } from "react-router-dom";
 
-export function Layout({ children, userType }) {
+export function AdminLayout() {
     const [isChangePassOpen, setIsChangePassOpen] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -59,31 +60,30 @@ export function Layout({ children, userType }) {
     const navItems = [
         {
             id: "dashboard",
-            path: "/dashboard",
+            path: "dashboard",
             label: "Dashboard",
             icon: LayoutDashboard,
         },
-        { id: "books", path: "/books", label: "Books", icon: BookOpen },
-        { id: "authors", path: "/authors", label: "Authors", icon: UserCircle },
+        { id: "books", path: "books", label: "Books", icon: BookOpen },
+        { id: "authors", path: "authors", label: "Authors", icon: UserCircle },
         {
             id: "categories",
-            path: "/categories",
+            path: "categories",
             label: "Categories",
             icon: FolderTree,
         },
         {
             id: "book-copies",
-            path: "/book-copies",
+            path: "book-copies",
             label: "Book Copies",
             icon: BookCopy,
         },
-        { id: "members", path: "/members", label: "Members", icon: Users },
-        { id: "staff", path: "/staff", label: "Staff", icon: UserCog },
-        { id: "loans", path: "/loans", label: "Loans", icon: BookmarkCheck },
-        // { id: "fines", path: "/fines", label: "Fines", icon: DollarSign }, //TODO
+        { id: "members", path: "members", label: "Members", icon: Users },
+        { id: "staffs", path: "staffs", label: "Staffs", icon: UserCog },
+        { id: "loans", path: "loans", label: "Loans", icon: BookmarkCheck },
         {
             id: "chat",
-            path: "/chat",
+            path: "chat",
             label: "Chat Support",
             icon: MessageCircle,
         },
@@ -93,11 +93,35 @@ export function Layout({ children, userType }) {
     const filteredNavItems = navItems.filter((item) => {
         if (roles.includes("Reader")) {
             // Reader can see: Books, Authors, Categories, Chat
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
+            return [
+                "dashboard",
+                "books",
+                "book-copies",
+                "authors",
+                "categories",
+                "loans",
+                "chat",
+            ].includes(item.id);
         } else if (roles.includes("Librarian")) {
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
+            return [
+                "dashboard",
+                "books",
+                "book-copies",
+                "authors",
+                "categories",
+                "loans",
+                "chat",
+            ].includes(item.id);
         } else if (roles.includes("Assistant")) {
-            return ["dashboard", "books", "book-copies", "authors", "categories", "loans", "chat"].includes(item.id);
+            return [
+                "dashboard",
+                "books",
+                "book-copies",
+                "authors",
+                "categories",
+                "loans",
+                "chat",
+            ].includes(item.id);
         }
         return true; // Admin can see all
     });
@@ -126,16 +150,10 @@ export function Layout({ children, userType }) {
                     <ul className="space-y-1 px-3">
                         {filteredNavItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive =
-                                location.pathname === item.path ||
-                                (item.id === "books" &&
-                                    location.pathname.startsWith("/books/")) ||
-                                (item.id === "authors" &&
-                                    location.pathname.startsWith(
-                                        "/authors/"
-                                    )) ||
-                                (item.id === "members" &&
-                                    location.pathname.startsWith("/members/"));
+                            const isActive = location.pathname.includes(
+                                `/admin/${item.path}`
+                            );
+
                             return (
                                 <li key={item.id}>
                                     <button
@@ -214,6 +232,9 @@ export function Layout({ children, userType }) {
                         </div>
                     </div>
                 </header>
+                <main className="flex-1 overflow-auto p-6">
+                    <Outlet /> {/* 👈 BẮT BUỘC */}
+                </main>
                 {isChangePassOpen && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-xl w-96 shadow-lg border border-gray-300">
@@ -255,9 +276,6 @@ export function Layout({ children, userType }) {
                         </div>
                     </div>
                 )}
-
-                {/* Page Content */}
-                <main className="flex-1 overflow-auto p-6">{children}</main>
             </div>
         </div>
     );

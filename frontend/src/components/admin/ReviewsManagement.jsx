@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Card, CardContent } from "./ui/card";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { Card, CardContent } from "../ui/card";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import { Search, Star, CheckCircle, XCircle } from "lucide-react";
-import { mockReviews } from "../data/mockData";
+import { mockReviews } from "../../data/mockData";
 
 export function ReviewsManagement() {
     const [reviews, setReviews] = useState(mockReviews || []);

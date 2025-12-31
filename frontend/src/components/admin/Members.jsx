@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
+} from "../ui/dialog";
+import { Label } from "../ui/label";
 import {
     Table,
     TableBody,
@@ -18,7 +18,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Search, Plus, User } from "lucide-react";
 
 const initialMembers = [

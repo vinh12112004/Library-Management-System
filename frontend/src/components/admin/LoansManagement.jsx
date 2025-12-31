@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
-import { Label } from "./ui/label";
+} from "../ui/select";
+import { Label } from "../ui/label";
 import {
     Table,
     TableBody,
@@ -19,7 +19,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Search, BookMarked, AlertTriangle, Edit, Trash2 } from "lucide-react";
 import {
     getLoans,
@@ -27,11 +27,11 @@ import {
     createLoan,
     updateLoan,
     deleteLoan,
-} from "../services/loanService";
-import { getMembers } from "../services/memberService";
-import { getBookCopies } from "../services/bookCopyService";
-import { useAuth } from "../context/AuthContext";
-import { hasRole } from "../utils/permission";
+} from "../../services/loanService";
+import { getMembers } from "../../services/memberService";
+import { getBookCopies } from "../../services/bookCopyService";
+import { useAuth } from "../../context/AuthContext";
+import { hasRole } from "../../utils/permission";
 
 export function LoansManagement() {
     const { roles } = useAuth();

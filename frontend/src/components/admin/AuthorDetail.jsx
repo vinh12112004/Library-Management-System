@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"; // Thêm useEffect và useState
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
 import {
     Table,
     TableBody,
@@ -9,10 +9,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { ArrowLeft, Loader2 } from "lucide-react"; // Import Loader2 cho trạng thái loading
 
-import { getAuthorById, getBooksByAuthorId } from "../services/authorService";
+import {
+    getAuthorById,
+    getBooksByAuthorId,
+} from "../../services/authorService";
 
 export function AuthorDetail() {
     const { id } = useParams();
@@ -62,7 +65,11 @@ export function AuthorDetail() {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/authors")}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/authors")}
+                >
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>

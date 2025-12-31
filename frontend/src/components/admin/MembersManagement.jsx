@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
+} from "../ui/dialog";
+import { Label } from "../ui/label";
 import {
     Table,
     TableBody,
@@ -26,15 +26,15 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Search, Plus, Eye, User, Edit, Trash2 } from "lucide-react";
 
 import {
     getMembers,
     updateMember,
     deleteMember,
-} from "../services/memberService";
-import { registerMember } from "../services/authService";
+} from "../../services/memberService";
+import { registerMember } from "../../services/authService";
 
 export function MembersManagement() {
     const navigate = useNavigate();
