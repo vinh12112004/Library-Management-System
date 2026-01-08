@@ -47,6 +47,20 @@ export function LoansManagement() {
     const [editingLoan, setEditingLoan] = useState(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
 
+    // Helper function to parse dd-MM-yyyy format from API
+    const parseDMYDate = (dateStr) => {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split("-");
+        return new Date(year, month - 1, day);
+    };
+
+    // Helper function to format date for display
+    const formatDateDisplay = (dateStr) => {
+        if (!dateStr) return "-";
+        const date = parseDMYDate(dateStr);
+        return date ? date.toLocaleDateString() : "-";
+    };
+
     // Calculate default due date (1 month from now)
     const getDefaultDueDate = () => {
         const date = new Date();
@@ -133,14 +147,11 @@ export function LoansManagement() {
 
     const isOverdue = (dueDate) => {
         const today = new Date();
-        const due = new Date(dueDate);
+        today.setHours(0, 0, 0, 0);
+        const due = parseDMYDate(dueDate);
+        if (!due) return false;
+        due.setHours(0, 0, 0, 0);
         return due < today;
-    };
-
-    const parseDMY = (dateStr) => {
-        if (!dateStr) return null;
-        const [day, month, year] = dateStr.split("-");
-        return new Date(year, month - 1, day);
     };
 
     const handleBorrow = async () => {
@@ -190,7 +201,8 @@ export function LoansManagement() {
         }
         try {
             setLoading(true);
-            const newDueDate = new Date(currentDueDate);
+            const currentDue = parseDMYDate(currentDueDate);
+            const newDueDate = new Date(currentDue);
             newDueDate.setMonth(newDueDate.getMonth() + 1);
 
             await updateLoan(loanId, {
@@ -231,7 +243,7 @@ export function LoansManagement() {
         setEditingLoan({
             loanId: loan.loanId,
             returnDate: loan.returnDate
-                ? new Date(loan.returnDate).toISOString().split("T")[0]
+                ? parseDMYDate(loan.returnDate).toISOString().split("T")[0]
                 : "",
             status: loan.status,
             notes: loan.notes || "",
@@ -379,21 +391,19 @@ export function LoansManagement() {
                                                         {loan.bookTitle}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {formatDateDisplay(
                                                             loan.loanDate
-                                                        ).toLocaleDateString()}
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {formatDateDisplay(
                                                             loan.dueDate
-                                                        ).toLocaleDateString()}
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {loan.returnDate
-                                                            ? new Date(
-                                                                  loan.returnDate
-                                                              ).toLocaleDateString()
-                                                            : "-"}
+                                                        {formatDateDisplay(
+                                                            loan.returnDate
+                                                        )}
                                                     </TableCell>
                                                     {!isReader && (
                                                         <TableCell>
