@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "https://pablo11.duckdns.org")
+            policy.WithOrigins("http://localhost:3000", "https://pablo11.duckdns.org", "https://library-management-system-omega-silk.vercel.app")
                 .AllowAnyHeader()
                 .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .AllowCredentials();
@@ -201,7 +201,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Management API V1");
     });
 }
-
+app.UseRouting();
 app.UseCors("AllowReact");
 app.UseHttpsRedirection();
 

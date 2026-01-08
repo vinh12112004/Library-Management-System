@@ -61,4 +61,10 @@ namespace backend.DTOs.Auth
         [Required]
         public string Password { get; set; } = default!;
     }
+    public class ChangePasswordDto
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+    }
+
 }

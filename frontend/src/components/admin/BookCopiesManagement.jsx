@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import {
     Table,
     TableBody,
@@ -26,17 +26,17 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { hasRole } from "../utils/permission";
+import { useAuth } from "../../context/AuthContext";
+import { hasRole } from "../../utils/permission";
 
 import {
     getBookCopies,
     createBookCopy,
     updateBookCopy,
     deleteBookCopy,
-} from "../services/bookCopyService";
+} from "../../services/bookCopyService";
 
 export function BookCopiesManagement() {
     const { roles } = useAuth();
@@ -236,7 +236,9 @@ export function BookCopiesManagement() {
                 <div>
                     <h1 className="text-2xl font-bold">Book Copies</h1>
                     <p className="text-gray-500 text-sm">
-                        {canManage ? "Manage book copies in the library." : "View book copies in the library."}
+                        {canManage
+                            ? "Manage book copies in the library."
+                            : "View book copies in the library."}
                     </p>
                 </div>
                 {canManage && (
@@ -348,7 +350,9 @@ export function BookCopiesManagement() {
                                                 <TableCell>
                                                     <Select
                                                         value={copy.status.toString()}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value
+                                                        ) =>
                                                             handleStatusChange(
                                                                 copy.copyId,
                                                                 value
@@ -359,14 +363,20 @@ export function BookCopiesManagement() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent className="w-32">
-                                                            {statuses.map((s) => (
-                                                                <SelectItem
-                                                                    key={s.value}
-                                                                    value={s.value.toString()}
-                                                                >
-                                                                    {s.label}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {statuses.map(
+                                                                (s) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            s.value
+                                                                        }
+                                                                        value={s.value.toString()}
+                                                                    >
+                                                                        {
+                                                                            s.label
+                                                                        }
+                                                                    </SelectItem>
+                                                                )
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                 </TableCell>
@@ -377,7 +387,9 @@ export function BookCopiesManagement() {
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() =>
-                                                                openEditDialog(copy)
+                                                                openEditDialog(
+                                                                    copy
+                                                                )
                                                             }
                                                         >
                                                             <Edit className="h-4 w-4" />

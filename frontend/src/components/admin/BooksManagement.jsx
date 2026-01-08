@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import {
     Table,
     TableBody,
@@ -27,7 +27,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import {
     Search,
     Plus,
@@ -44,14 +44,14 @@ import {
     createBook,
     updateBook,
     deleteBook,
-} from "../services/bookService";
-import { getAuthors } from "../services/authorService";
-import { getCategories } from "../services/categoryService";
+} from "../../services/bookService";
+import { getAuthors } from "../../services/authorService";
+import { getCategories } from "../../services/categoryService";
 import { toast } from "sonner";
-import { BooksTableView } from "./book/BooksTableView";
-import { BooksGridView } from "./book/BooksGridView";
-import { useAuth } from "../context/AuthContext";
-import { hasRole } from "../utils/permission";
+import { BooksTableView } from "../book/BooksTableView";
+import { BooksGridView } from "../book/BooksGridView";
+import { useAuth } from "../../context/AuthContext";
+import { hasRole } from "../../utils/permission";
 
 export function BooksManagement() {
     const navigate = useNavigate();

@@ -1,4 +1,5 @@
-﻿using backend.Data;
+﻿using System.Security.Claims;
+using backend.Data;
 using backend.DTOs.Auth;
 using backend.Models;
 using backend.Services;
@@ -21,6 +22,7 @@ namespace backend.Controllers
             _db = db;
             _tokenService = tokenService;
         }
+        
         [HttpPost("register-staff")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> RegisterStaff([FromBody] StaffRegisterDto dto, CancellationToken ct)
@@ -144,6 +146,32 @@ namespace backend.Controllers
             await _db.SaveChangesAsync(ct);
 
             return Ok(new { member.MemberId, member.MemberCode });
+        }
+        
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto, CancellationToken ct)
+        {
+            int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (accountId==null)
+                return Unauthorized("Không xác thực được người dùng");
+
+            if (string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword))
+                return BadRequest("Mật khẩu hiện tại và mật khẩu mới không được để trống");
+            
+            var account = await _db.Accounts.FirstOrDefaultAsync(a => a.AccountId == accountId, ct);
+            if (account == null || !account.IsActive)
+                return Unauthorized("Tài khoản không tồn tại hoặc bị khóa");
+
+            // Kiểm tra mật khẩu hiện tại
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, account.PasswordHash))
+                return BadRequest("Mật khẩu hiện tại không đúng");
+
+            // Hash mật khẩu mới và cập nhật
+            account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _db.SaveChangesAsync(ct);
+
+            return Ok(new { message = "Đổi mật khẩu thành công" });
         }
 
         private static string GenerateMemberCode()

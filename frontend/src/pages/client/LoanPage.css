@@ -1,0 +1,41 @@
+.loan-list {
+    margin-top: 20px;
+}
+
+.loan-item {
+    background: white;
+    margin-bottom: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 15px;
+    background-color: #eccc68;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-badge.late {
+    background-color: #ff6b81;
+    color: white;
+}
+
+.return-btn {
+    padding: 8px 15px;
+    background-color: transparent;
+    border: 1px solid #1e90ff;
+    color: #1e90ff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.return-btn:hover {
+    background-color: #1e90ff;
+    color: white;
+}

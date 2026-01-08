@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogFooter,
     DialogTitle,
-} from "./ui/dialog";
-import { Textarea } from "./ui/textarea";
+} from "../ui/dialog";
+import { Textarea } from "../ui/textarea";
 import {
     Table,
     TableBody,
@@ -19,14 +19,14 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import {
     Search,
     Plus,
@@ -42,9 +42,9 @@ import {
     createAuthor,
     updateAuthor,
     deleteAuthor,
-} from "../services/authorService";
-import { useAuth } from "../context/AuthContext";
-import { hasRole } from "../utils/permission";
+} from "../../services/authorService";
+import { useAuth } from "../../context/AuthContext";
+import { hasRole } from "../../utils/permission";
 
 export function AuthorsManagement() {
     const navigate = useNavigate();
@@ -90,7 +90,6 @@ export function AuthorsManagement() {
 
     // Load data
     useEffect(() => {
-
         fetchAuthors();
     }, [pagination.pageNumber, pagination.pageSize, searchQuery]);
 
@@ -105,7 +104,8 @@ export function AuthorsManagement() {
             });
 
             const items = response?.items || response || [];
-            const nextPageNumber = response?.pageNumber ?? pagination.pageNumber;
+            const nextPageNumber =
+                response?.pageNumber ?? pagination.pageNumber;
             const nextPageSize = response?.pageSize ?? pagination.pageSize;
             const totalCount = response?.totalCount ?? items.length;
             const totalPages =
@@ -131,8 +131,6 @@ export function AuthorsManagement() {
             setLoading(false);
         }
     };
-
-
 
     const openAddDialog = () => {
         setFormData({
@@ -244,20 +242,27 @@ export function AuthorsManagement() {
                 <div className="flex justify-center items-center h-64">
                     <div className="text-center">
                         <p className="text-red-600 mb-4">{error}</p>
-                        <Button onClick={() => {
-                            setError(null);
-                            setLoading(true);
-                            getAuthors()
-                                .then((data) => {
-                                    setAuthors(data || []);
-                                    setLoading(false);
-                                })
-                                .catch((err) => {
-                                    console.error("Error fetching authors:", err);
-                                    setError("Failed to load authors. Please try again.");
-                                    setLoading(false);
-                                });
-                        }}>
+                        <Button
+                            onClick={() => {
+                                setError(null);
+                                setLoading(true);
+                                getAuthors()
+                                    .then((data) => {
+                                        setAuthors(data || []);
+                                        setLoading(false);
+                                    })
+                                    .catch((err) => {
+                                        console.error(
+                                            "Error fetching authors:",
+                                            err
+                                        );
+                                        setError(
+                                            "Failed to load authors. Please try again."
+                                        );
+                                        setLoading(false);
+                                    });
+                            }}
+                        >
                             Try Again
                         </Button>
                     </div>
@@ -270,12 +275,24 @@ export function AuthorsManagement() {
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold"> {canManage ? "Authors Management" : "Authors Library"} </h1>
-                    <p className="text-gray-600 mt-1">{canManage ? "Manage and organize authors" : "Browse and explore our authors collection."}</p>
+                    <h1 className="text-3xl font-bold">
+                        {" "}
+                        {canManage
+                            ? "Authors Management"
+                            : "Authors Library"}{" "}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {canManage
+                            ? "Manage and organize authors"
+                            : "Browse and explore our authors collection."}
+                    </p>
                 </div>
 
                 {canManage && (
-                    <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
+                    <Button
+                        onClick={openAddDialog}
+                        className="bg-blue-600 hover:bg-blue-700"
+                    >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Author
                     </Button>
@@ -315,64 +332,77 @@ export function AuthorsManagement() {
                         <TableBody>
                             {filteredAuthors.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                                        {searchQuery ? "No authors found matching your search." : "No authors available."}
+                                    <TableCell
+                                        colSpan={5}
+                                        className="text-center py-8 text-gray-500"
+                                    >
+                                        {searchQuery
+                                            ? "No authors found matching your search."
+                                            : "No authors available."}
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 filteredAuthors.map((author) => (
-                                <TableRow key={author.authorId}>
-                                    <TableCell>#{author.authorId}</TableCell>
-                                    <TableCell className="font-medium">
-                                        {author.fullName}
-                                    </TableCell>
-                                    <TableCell>{author.nationality}</TableCell>
-                                    <TableCell>{author.dateOfBirth}</TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {canView && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/authors/${author.authorId}`
-                                                        )
-                                                    }
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                            )}
+                                    <TableRow key={author.authorId}>
+                                        <TableCell>
+                                            #{author.authorId}
+                                        </TableCell>
+                                        <TableCell className="font-medium">
+                                            {author.fullName}
+                                        </TableCell>
+                                        <TableCell>
+                                            {author.nationality}
+                                        </TableCell>
+                                        <TableCell>
+                                            {author.dateOfBirth}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {canView && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/authors/${author.authorId}`
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                )}
 
-                                            {canManage && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditDialog(author)
-                                                    }
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                            )}
+                                                {canManage && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            openEditDialog(
+                                                                author
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                )}
 
-                                            {canManage && (
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            author.authorId
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                                {canManage && (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                author.authorId
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                             )}
                         </TableBody>
                     </Table>
@@ -382,7 +412,8 @@ export function AuthorsManagement() {
             <Card>
                 <CardContent className="flex items-center justify-between px-4 py-4">
                     <div className="text-sm text-gray-600">
-                        Showing {authors.length} of {pagination.totalCount} authors
+                        Showing {authors.length} of {pagination.totalCount}{" "}
+                        authors
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -397,7 +428,10 @@ export function AuthorsManagement() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {[5, 10, 20, 50].map((size) => (
-                                        <SelectItem key={size} value={String(size)}>
+                                        <SelectItem
+                                            key={size}
+                                            value={String(size)}
+                                        >
                                             {size}
                                         </SelectItem>
                                     ))}
@@ -416,7 +450,8 @@ export function AuthorsManagement() {
                                 Previous
                             </Button>
                             <div className="text-sm">
-                                Page {pagination.pageNumber} of {pagination.totalPages}
+                                Page {pagination.pageNumber} of{" "}
+                                {pagination.totalPages}
                             </div>
                             <Button
                                 variant="outline"

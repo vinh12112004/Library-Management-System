@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
-import { Label } from "./ui/label";
+} from "../ui/select";
+import { Label } from "../ui/label";
 import {
     Table,
     TableBody,
@@ -19,7 +19,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Search, BookMarked, AlertTriangle, Edit, Trash2 } from "lucide-react";
 import {
     getLoans,
@@ -27,11 +27,11 @@ import {
     createLoan,
     updateLoan,
     deleteLoan,
-} from "../services/loanService";
-import { getMembers } from "../services/memberService";
-import { getBookCopies } from "../services/bookCopyService";
-import { useAuth } from "../context/AuthContext";
-import { hasRole } from "../utils/permission";
+} from "../../services/loanService";
+import { getMembers } from "../../services/memberService";
+import { getBookCopies } from "../../services/bookCopyService";
+import { useAuth } from "../../context/AuthContext";
+import { hasRole } from "../../utils/permission";
 
 export function LoansManagement() {
     const { roles } = useAuth();
@@ -46,6 +46,20 @@ export function LoansManagement() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [editingLoan, setEditingLoan] = useState(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
+
+    // Helper function to parse dd-MM-yyyy format from API
+    const parseDMYDate = (dateStr) => {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split("-");
+        return new Date(year, month - 1, day);
+    };
+
+    // Helper function to format date for display
+    const formatDateDisplay = (dateStr) => {
+        if (!dateStr) return "-";
+        const date = parseDMYDate(dateStr);
+        return date ? date.toLocaleDateString() : "-";
+    };
 
     // Calculate default due date (1 month from now)
     const getDefaultDueDate = () => {
@@ -133,14 +147,11 @@ export function LoansManagement() {
 
     const isOverdue = (dueDate) => {
         const today = new Date();
-        const due = new Date(dueDate);
+        today.setHours(0, 0, 0, 0);
+        const due = parseDMYDate(dueDate);
+        if (!due) return false;
+        due.setHours(0, 0, 0, 0);
         return due < today;
-    };
-
-    const parseDMY = (dateStr) => {
-        if (!dateStr) return null;
-        const [day, month, year] = dateStr.split("-");
-        return new Date(year, month - 1, day);
     };
 
     const handleBorrow = async () => {
@@ -190,7 +201,8 @@ export function LoansManagement() {
         }
         try {
             setLoading(true);
-            const newDueDate = new Date(currentDueDate);
+            const currentDue = parseDMYDate(currentDueDate);
+            const newDueDate = new Date(currentDue);
             newDueDate.setMonth(newDueDate.getMonth() + 1);
 
             await updateLoan(loanId, {
@@ -231,7 +243,7 @@ export function LoansManagement() {
         setEditingLoan({
             loanId: loan.loanId,
             returnDate: loan.returnDate
-                ? new Date(loan.returnDate).toISOString().split("T")[0]
+                ? parseDMYDate(loan.returnDate).toISOString().split("T")[0]
                 : "",
             status: loan.status,
             notes: loan.notes || "",
@@ -379,21 +391,19 @@ export function LoansManagement() {
                                                         {loan.bookTitle}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {formatDateDisplay(
                                                             loan.loanDate
-                                                        ).toLocaleDateString()}
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(
+                                                        {formatDateDisplay(
                                                             loan.dueDate
-                                                        ).toLocaleDateString()}
+                                                        )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {loan.returnDate
-                                                            ? new Date(
-                                                                  loan.returnDate
-                                                              ).toLocaleDateString()
-                                                            : "-"}
+                                                        {formatDateDisplay(
+                                                            loan.returnDate
+                                                        )}
                                                     </TableCell>
                                                     {!isReader && (
                                                         <TableCell>

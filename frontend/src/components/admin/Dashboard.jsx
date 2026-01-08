@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
     BookOpen,
     BookCheck,
@@ -22,7 +22,7 @@ import {
     Cell,
     Legend,
 } from "recharts";
-import { getDashboardStats } from "../services/dashboardService";
+import { getDashboardStats } from "../../services/dashboardService";
 import { toast } from "sonner";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];

@@ -1,0 +1,112 @@
+.my-loans-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.my-loans-header {
+    margin-bottom: 2rem;
+}
+
+.my-loans-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.my-loans-header p {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.my-loans-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.search-filter-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #9ca3af;
+}
+
+.search-input {
+    padding-left: 40px;
+}
+
+.filter-select {
+    min-width: 200px;
+}
+
+.loading-state,
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+/* Badge Styles */
+.badge-overdue {
+    background: #fee2e2;
+    color: #991b1b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-borrowing {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-returned {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-lost {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .my-loans-container {
+        padding: 1rem;
+    }
+
+    .my-loans-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .search-filter-section {
+        flex-direction: column;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+}
