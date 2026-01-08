@@ -22,13 +22,8 @@ namespace backend.Services.Author
         {
             var pagedAuthors = await _authorRepository.GetAllAsync(query);
 
-            var dtoItems = pagedAuthors.Items.Select(a => new AuthorDto
-            {
-                AuthorId = a.AuthorId,
-                FullName = a.FullName,
-                Biography = a.Biography,
-                Nationality = a.Nationality,
-            }).ToList();
+            var dtoItems = _mapper.Map<List<AuthorDto>>(pagedAuthors.Items);
+
 
             return new PagedResult<AuthorDto>(
                 dtoItems,

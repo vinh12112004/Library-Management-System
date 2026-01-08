@@ -6,21 +6,25 @@ import {
     LogOut,
     ClipboardList,
     Home as HomeIcon,
-} from "lucide-react"; // Thêm icon
+    MessageCircle,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { ChatReader } from "../components/ChatReader";
+import { useState } from "react";
+import "./ClientLayout.css";
 
 export default function ClientLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, user, logout } = useAuth();
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
 
-    // Cập nhật danh sách điều hướng
     const navItems = [
         {
             label: "Trang chủ",
@@ -34,7 +38,6 @@ export default function ClientLayout() {
         },
     ];
 
-    // Chỉ thêm trang Mượn sách nếu đã đăng nhập
     if (isAuthenticated) {
         navItems.push({
             label: "Mượn sách",
@@ -115,6 +118,41 @@ export default function ClientLayout() {
             <footer className="bg-white border-t py-6 text-center text-sm text-gray-500">
                 <p>© {new Date().getFullYear()} Library Management System.</p>
             </footer>
+
+            {/* Floating Chat Button - chỉ hiển thị khi đã đăng nhập */}
+            {isAuthenticated && (
+                <>
+                    {!isChatOpen && (
+                        <button
+                            className="floating-chat-button"
+                            onClick={() => setIsChatOpen(true)}
+                            title="Hỗ trợ trực tuyến"
+                        >
+                            <MessageCircle className="h-6 w-6" />
+                        </button>
+                    )}
+
+                    {/* Chat Modal */}
+                    {isChatOpen && (
+                        <div className="chat-modal-overlay">
+                            <div className="chat-modal">
+                                <div className="chat-modal-header">
+                                    <h3>Hỗ trợ trực tuyến</h3>
+                                    <button
+                                        className="chat-close-button"
+                                        onClick={() => setIsChatOpen(false)}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="chat-modal-content">
+                                    <ChatReader />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }

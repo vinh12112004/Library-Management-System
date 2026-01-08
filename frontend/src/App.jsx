@@ -15,7 +15,7 @@ import ClientLayout from "./layout/ClientLayout";
 import HomePage from "./pages/client/HomePage";
 import ClientBooksPage from "./pages/client/BooksPage";
 import ClientBookDetailPage from "./pages/client/BookDetailPage";
-
+import MyLoansPage from "./pages/client/MyLoansPage";
 export default function App() {
     return (
         <Routes>
@@ -47,6 +47,7 @@ export default function App() {
                 <Route index element={<HomePage />} />
                 <Route path="books" element={<ClientBooksPage />} />
                 <Route path="books/:id" element={<ClientBookDetailPage />} />
+                <Route path="loans" element={<MyLoansPage />} />
             </Route>
         </Routes>
     );
