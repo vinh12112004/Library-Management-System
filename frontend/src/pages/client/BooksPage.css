@@ -264,10 +264,10 @@
 }
 
 /* Borrow Button */
-.borrow-btn {
+.view-detail-btn {
     width: 100%;
     padding: 10px;
-    background-color: #2ed573;
+    background-color: #3742fa;
     color: white;
     border: none;
     border-radius: 6px;
@@ -277,18 +277,11 @@
     transition: all 0.3s ease;
 }
 
-.borrow-btn:hover:not(:disabled) {
-    background-color: #26d063;
+.view-detail-btn:hover {
+    background-color: #2f3bdb;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);
+    box-shadow: 0 5px 15px rgba(55, 66, 250, 0.3);
 }
-
-.borrow-btn:disabled {
-    background-color: #95a5a6;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
 /* Loading Skeleton */
 .skeleton-card {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);

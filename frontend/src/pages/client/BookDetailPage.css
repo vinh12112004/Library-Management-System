@@ -1,0 +1,166 @@
+.book-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.book-detail-container .back-btn {
+    margin-bottom: 1.5rem;
+}
+
+.book-detail-container .loading,
+.book-detail-container .error {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.book-detail-content {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 3rem;
+    margin-top: 2rem;
+}
+
+/* Left Section - Cover */
+.book-detail-cover-section {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.book-detail-cover-section .book-cover {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.book-detail-cover-section .no-cover {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+}
+
+.book-detail-availability {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.book-detail-availability .available-badge,
+.book-detail-availability .unavailable-badge {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.book-detail-availability .available-badge {
+    background: #d4edda;
+    color: #155724;
+}
+
+.book-detail-availability .unavailable-badge {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Right Section - Info */
+.book-detail-info-section {
+    min-height: 500px;
+}
+
+.book-detail-info-section .book-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.book-detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.book-detail-meta .meta-item {
+    display: flex;
+    gap: 1rem;
+}
+
+.book-detail-meta .meta-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 120px;
+}
+
+.book-detail-meta .meta-value {
+    color: #212529;
+    flex: 1;
+}
+
+.book-detail-meta .category-tag {
+    display: inline-block;
+    background: #e7f3ff;
+    color: #0066cc;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.book-detail-description {
+    margin-bottom: 2rem;
+}
+
+.book-detail-description h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1a1a1a;
+}
+
+.book-detail-description p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #495057;
+}
+
+.book-detail-borrow-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.book-detail-borrow-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .book-detail-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .book-detail-cover-section {
+        position: static;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .book-detail-info-section .book-title {
+        font-size: 2rem;
+    }
+}

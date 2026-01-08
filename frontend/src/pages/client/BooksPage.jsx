@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getBooks } from "../../services/bookService";
 import "./BooksPage.css";
 
 const BooksPage = () => {
+    const navigate = useNavigate();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -52,6 +54,10 @@ const BooksPage = () => {
     const handlePageChange = (newPage) => {
         fetchBooks(newPage, searchTerm);
         window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handleViewDetail = (bookId) => {
+        navigate(`/books/${bookId}`);
     };
 
     return (
@@ -140,12 +146,12 @@ const BooksPage = () => {
                                         {book.authors.join(", ")}
                                     </p>
                                     <button
-                                        className="borrow-btn"
-                                        disabled={book.availableCopies === 0}
+                                        className="view-detail-btn"
+                                        onClick={() =>
+                                            handleViewDetail(book.bookId)
+                                        }
                                     >
-                                        {book.availableCopies > 0
-                                            ? "Mượn sách"
-                                            : "Hết sách"}
+                                        📖 Xem chi tiết
                                     </button>
                                 </div>
                             </div>
