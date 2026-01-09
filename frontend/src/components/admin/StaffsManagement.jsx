@@ -27,14 +27,21 @@ import {
     TableHeader,
     TableRow,
 } from "../ui/table";
-import { Search, Plus, Eye, UserCog, Edit, Trash2 } from "lucide-react";
-
+import {
+    Search,
+    Plus,
+    Eye,
+    UserCog,
+    Edit,
+    Trash2,
+    KeyRound,
+} from "lucide-react";
 import {
     getStaffs,
     updateStaff,
     deleteStaff,
 } from "../../services/staffService";
-import { registerStaff } from "../../services/authService";
+import { registerStaff, resetPasswordStaff } from "../../services/authService";
 
 export function StaffsManagement() {
     const navigate = useNavigate();
@@ -247,6 +254,29 @@ export function StaffsManagement() {
         }
     };
 
+    const handleResetPassword = async (staffId, staffName) => {
+        if (
+            !window.confirm(
+                `Bạn có chắc muốn reset mật khẩu của ${staffName}? Mật khẩu mới sẽ là: 123123`
+            )
+        ) {
+            return;
+        }
+
+        try {
+            await resetPasswordStaff(staffId);
+            alert(
+                `Đặt lại mật khẩu thành công cho ${staffName}. Mật khẩu mới: 123123`
+            );
+        } catch (error) {
+            console.error("Error resetting password:", error);
+            alert(
+                "Lỗi khi đặt lại mật khẩu: " +
+                    (error.response?.data || error.message)
+            );
+        }
+    };
+
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
@@ -387,6 +417,20 @@ export function StaffsManagement() {
                                                 }
                                             >
                                                 <Edit className="h-4 w-4" />
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleResetPassword(
+                                                        staff.staffId,
+                                                        staff.fullName
+                                                    )
+                                                }
+                                                title="Reset Password"
+                                            >
+                                                <KeyRound className="h-4 w-4" />
                                             </Button>
 
                                             <Button

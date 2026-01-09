@@ -173,7 +173,47 @@ namespace backend.Controllers
 
             return Ok(new { message = "Đổi mật khẩu thành công" });
         }
+    
+        [HttpPost("reset-password-member/{memberId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPasswordMember(int memberId, CancellationToken ct)
+        {
+            var member = await _db.Members
+                .Include(m => m.Account)
+                .FirstOrDefaultAsync(m => m.MemberId == memberId, ct);
 
+            if (member == null)
+                return NotFound("Không tìm thấy thành viên");
+
+            if (member.Account == null)
+                return BadRequest("Thành viên không có tài khoản");
+
+            member.Account.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123123");
+            await _db.SaveChangesAsync(ct);
+
+            return Ok(new { message = "Đặt lại mật khẩu thành công. Mật khẩu mới: 123123" });
+        }
+
+        [HttpPost("reset-password-staff/{staffId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPasswordStaff(int staffId, CancellationToken ct)
+        {
+            var staff = await _db.Staffs
+                .Include(s => s.Account)
+                .FirstOrDefaultAsync(s => s.StaffId == staffId, ct);
+
+            if (staff == null)
+                return NotFound("Không tìm thấy nhân viên");
+
+            if (staff.Account == null)
+                return BadRequest("Nhân viên không có tài khoản");
+
+            staff.Account.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123123");
+            await _db.SaveChangesAsync(ct);
+
+            return Ok(new { message = "Đặt lại mật khẩu thành công. Mật khẩu mới: 123123" });
+        }
+        
         private static string GenerateMemberCode()
         {
             var rnd = Random.Shared.Next(1000, 9999);

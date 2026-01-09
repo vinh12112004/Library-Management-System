@@ -47,3 +47,17 @@ export const changePassword = async ({ currentPassword, newPassword }) => {
     });
     return response.data;
 };
+
+export const resetPasswordMember = async (memberId) => {
+    const response = await apiClient.post(
+        `/Auth/reset-password-member/${memberId}`
+    );
+    return response.data;
+};
+
+export const resetPasswordStaff = async (staffId) => {
+    const response = await apiClient.post(
+        `/Auth/reset-password-staff/${staffId}`
+    );
+    return response.data;
+};

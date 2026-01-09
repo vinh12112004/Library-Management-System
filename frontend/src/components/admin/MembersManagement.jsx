@@ -27,14 +27,17 @@ import {
     TableHeader,
     TableRow,
 } from "../ui/table";
-import { Search, Plus, Eye, User, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Eye, User, Edit, Trash2, KeyRound } from "lucide-react";
 
 import {
     getMembers,
     updateMember,
     deleteMember,
 } from "../../services/memberService";
-import { registerMember } from "../../services/authService";
+import {
+    registerMember,
+    resetPasswordMember,
+} from "../../services/authService";
 
 export function MembersManagement() {
     const navigate = useNavigate();
@@ -284,6 +287,29 @@ export function MembersManagement() {
         }
     };
 
+    const handleResetPassword = async (memberId, memberName) => {
+        if (
+            !window.confirm(
+                `Bạn có chắc muốn reset mật khẩu của ${memberName}? Mật khẩu mới sẽ là: 123123`
+            )
+        ) {
+            return;
+        }
+
+        try {
+            await resetPasswordMember(memberId);
+            alert(
+                `Đặt lại mật khẩu thành công cho ${memberName}. Mật khẩu mới: 123123`
+            );
+        } catch (error) {
+            console.error("Error resetting password:", error);
+            alert(
+                "Lỗi khi đặt lại mật khẩu: " +
+                    (error.response?.data || error.message)
+            );
+        }
+    };
+
     return (
         <div className="space-y-6 p-4">
             <div className="flex justify-between items-center">
@@ -432,6 +458,20 @@ export function MembersManagement() {
                                                 }
                                             >
                                                 <Edit className="h-4 w-4" />
+                                            </Button>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleResetPassword(
+                                                        member.memberId,
+                                                        member.fullName
+                                                    )
+                                                }
+                                                title="Reset Password"
+                                            >
+                                                <KeyRound className="h-4 w-4" />
                                             </Button>
 
                                             <Button
