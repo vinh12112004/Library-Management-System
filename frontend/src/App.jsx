@@ -25,7 +25,9 @@ export default function App() {
             <Route
                 path="/admin"
                 element={
-                    <ProtectedRoute requiredRoles={["Admin", "Staff"]}>
+                    <ProtectedRoute
+                        requiredRoles={["Admin", "Librarian", "Assistant"]}
+                    >
                         <AdminLayout />
                     </ProtectedRoute>
                 }
